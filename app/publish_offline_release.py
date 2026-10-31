@@ -15,7 +15,6 @@ import urllib.request
 from pathlib import Path
 
 REPO='nianfangomo-bit/voice-studio-local'
-TAG='v0.2.0-alpha.2'
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -43,6 +42,8 @@ def main():
     parser.add_argument('--asset',action='append',help='Upload only named package assets; repeat for selected files')
     parser.add_argument('--retry-incomplete',action='store_true',help='Replace only selected unfinished assets from a failed upload')
     args=parser.parse_args()
+    manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
+    TAG='v'+manifest['version']
     env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GCM_INTERACTIVE='Never')
     credential=subprocess.run(['git','-c','credential.interactive=never','credential','fill'],
         input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,env=env,check=True)

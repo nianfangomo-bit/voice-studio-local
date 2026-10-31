@@ -35,7 +35,8 @@ with archive.open('rb') as source:
 with zipfile.ZipFile(archive) as z:
     root=z.namelist()[0].split('/')[0]
     total=sum(info.file_size for info in z.infolist())
-metadata={'version':'0.2.0-alpha.2','folder':root,'archive_sha256':whole.hexdigest(),'unpacked_bytes':total,'parts':parts}
+    version=json.loads(z.read(root+'/package-manifest.json'))['version']
+metadata={'version':version,'folder':root,'archive_sha256':whole.hexdigest(),'unpacked_bytes':total,'parts':parts}
 (output/'offline-package.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2),encoding='utf-8')
 (output/'SHA256SUMS.txt').write_text('\n'.join(p['sha256']+'  '+p['name'] for p in parts)+'\n',encoding='utf-8')
 print(json.dumps({'parts':len(parts),'packed_bytes':archive.stat().st_size,'unpacked_bytes':total}),flush=True)

@@ -6,6 +6,7 @@ import zipfile
 
 root = Path(__file__).resolve().parent
 version = (root / 'VERSION').read_text(encoding='utf-8').strip()
+assert json.loads((root/'app/package.json').read_text(encoding='utf-8'))['version'] == version, '版本号不一致'
 out = root.parent / 'voice-studio-release-artifacts'
 out.mkdir(exist_ok=True)
 top = {'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
@@ -22,6 +23,7 @@ app_files.update({'offline_check.py','环境检查.cmd','Start.cmd','OFFLINE-REA
                   'OfflineSetup.cs','publish_offline_release.py'})
 files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_files)]
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
+files.append(root/'docs/cover.png')
 manifest = []
 for p in files:
     data = p.read_bytes()

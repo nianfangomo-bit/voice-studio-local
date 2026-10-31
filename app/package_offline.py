@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from build_portable import inventory, APP_FILES
 
-VERSION = '0.2.0-alpha.2'
+VERSION = json.loads((Path(__file__).resolve().parent/'package.json').read_text(encoding='utf-8'))['version']
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
     files += [(root/p,p) for p in ['offline_check.py','环境检查.cmd','Start.cmd']]
     files += [(root/'OFFLINE-README.md','使用说明.md')]
     # App and frontend notices are retained in addition to vendor runtime licenses.
-    release=root.parent/'voice-studio-release'
+    release=root.parent if (root.parent/'LICENSE').is_file() else root.parent/'voice-studio-release'
     files += [(release/'LICENSE','LICENSE')]
     files += [(p,'licenses/'+p.name) for p in sorted((release/'licenses').glob('*.txt'))]
     notices = root/'OFFLINE-THIRD-PARTY.md'
