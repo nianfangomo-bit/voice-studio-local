@@ -1,0 +1,13 @@
+app/data/
+**/__pycache__/
+*.pyc
+node_modules/
+.env
+*.wav
+*.mp3
+*.pth
+*.ckpt
+*.sqlite*
+*.log
+dist/
+package-source.ps1

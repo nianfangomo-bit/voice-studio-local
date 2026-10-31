@@ -1,0 +1,12 @@
+{
+  "release": "0.2.0-alpha.1",
+  "engine_distribution": "GPT-SoVITS-v2pro-20250604",
+  "scope": "Observed developer environment, not a complete dependency lock or clean-machine certification",
+  "python_packages": {
+    "fastapi": "0.112.1", "uvicorn": "0.20.0", "torch": "2.0.0+cu118",
+    "numpy": "1.23.4", "soundfile": "0.12.1", "PyYAML": "6.0"
+  },
+  "gpu_tested": "NVIDIA RTX 3080 10GB",
+  "gpu_not_yet_validated": ["NVIDIA RTX 2060 6GB"],
+  "includes_engine_or_models": false
+}

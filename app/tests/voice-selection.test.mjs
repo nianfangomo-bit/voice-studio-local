@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {preferredVoiceId} from '../ui/voice-selection.mjs';
+const stable={id:'stable',status:'published',created:1};
+const trial={id:'trial',status:'imported',created:3};
+assert.equal(preferredVoiceId([trial,stable]),'stable');
+assert.equal(preferredVoiceId([stable,trial]),'stable');
+assert.equal(preferredVoiceId([trial]),'');
+assert.equal(preferredVoiceId([]),'');
+assert.equal(preferredVoiceId([{id:'candidate',status:'candidate'},trial]),'');
+assert.equal(preferredVoiceId([{id:'new',status:'published',created:4},stable]),'stable');
+console.log('6 voice selection checks passed');
