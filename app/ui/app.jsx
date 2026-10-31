@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Training} from './Training';
 import {preferredVoiceId} from './voice-selection.mjs';
@@ -16,6 +16,8 @@ function App() {
   const [state,setState]=useState(null), [page,setPage]=useState('配音工作台'), [pid,setPid]=useState('');
   const [error,setError]=useState(''), [notice,setNotice]=useState(''),[pending,setPending]=useState(false),[log,setLog]=useState('');
   const [checks,setChecks]=useState([]);
+  const initialPage=useRef(false);
+  useEffect(()=>{if(state&&!initialPage.current){initialPage.current=true;if(!state.voices.length)setPage('训练工作台')}},[state]);
   const refresh=async()=>setState(await api('state'));
   useEffect(()=>{let mounted=true; (async()=>{
     const token=location.hash.slice(1);
@@ -26,7 +28,7 @@ function App() {
   if(!state) return <main><h1>声线工作室</h1><p>{error || '正在读取本地项目…'}</p></main>;
   const project=state.projects.find(p=>p.id===pid)||state.projects[0];
   const working=project&&state.jobs.some(j=>j.project_id===project.id&&busyStates.includes(j.state));
-  const nav=['配音工作台','我的声线','作品库'];
+  const nav=['配音工作台','训练工作台','我的声线','作品库'];
   const latestJob=project&&state.jobs.find(j=>j.project_id===project.id);
   const generate=(mode,segment_id)=>act(()=>api(`projects/${project.id}/generate`,{mode,segment_id}),'任务已提交；完成片段会自动保存。');
   return <div className="shell"><aside><div className="brand"><b>声线<span>工作室</span></b><small>VOICE STUDIO / LOCAL</small></div><nav>{nav.map(n=><button key={n} className={page===n?'selected':''} onClick={()=>setPage(n)}>{n==='配音工作台'?'开始配音':n}</button>)}<details className="navmore"><summary>更多工具</summary>{['训练工作台','任务中心','环境设置'].map(n=><button key={n} className={page===n?'selected':''} onClick={()=>setPage(n)}>{n}{n==='任务中心'&&` · ${state.jobs.filter(j=>busyStates.includes(j.state)).length}`}</button>)}</details></nav><div className="privacy"><i/>录音与文案留在本机<small>声线训练一次，后续直接使用。</small></div></aside><main><header><div><small>你的声音，从这里开始</small><h1>{page==='配音工作台'?'开始配音':page}</h1></div><span className="badge">本地保存</span></header>

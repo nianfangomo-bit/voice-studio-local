@@ -1,0 +1,99 @@
+"""Upload the offline package as a reviewable GitHub release draft.
+
+Uses Git's configured credential helper for the same GitHub account/repository.
+Credentials stay in memory, are never printed or saved, and are sent only to
+api.github.com / uploads.github.com. Run with the user's configured HTTPS proxy.
+"""
+import argparse
+import json
+import os
+import subprocess
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+REPO='nianfangomo-bit/voice-studio-local'
+TAG='v0.2.0-alpha.2'
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,*args,**kwargs):
+        raise RuntimeError('Unexpected GitHub redirect; refusing to forward authentication')
+
+
+class ProgressFile:
+    def __init__(self,path):
+        self.path=path;self.stream=path.open('rb');self.size=path.stat().st_size;self.done=0;self.last=0
+    def read(self,size=-1):
+        data=self.stream.read(size);self.done+=len(data)
+        now=time.time()
+        if now-self.last>20 or not data:
+            print(json.dumps({'asset':self.path.name,'uploaded_bytes':self.done,'total_bytes':self.size}),flush=True)
+            self.last=now
+        return data
+    def close(self):self.stream.close()
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('directory',type=Path)
+    parser.add_argument('--commit',required=True)
+    args=parser.parse_args()
+    env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GCM_INTERACTIVE='Never')
+    credential=subprocess.run(['git','-c','credential.interactive=never','credential','fill'],
+        input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,env=env,check=True)
+    auth=dict(line.split('=',1) for line in credential.stdout.splitlines() if '=' in line)
+    token=auth.get('password')
+    if not token:raise RuntimeError('GitHub authentication is not available')
+    opener=urllib.request.build_opener(NoRedirect)
+
+    def request(path,method='GET',data=None,content_type='application/json',size=None):
+        url=path if path.startswith('https://') else 'https://api.github.com'+path
+        if urllib.parse.urlparse(url).hostname not in {'api.github.com','uploads.github.com'}:
+            raise ValueError('Unexpected destination')
+        headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json',
+                 'X-GitHub-Api-Version':'2022-11-28','User-Agent':'VoiceStudio-Offline-Release',
+                 'Content-Type':content_type}
+        if isinstance(data,(dict,list)):data=json.dumps(data).encode()
+        if size is not None:headers['Content-Length']=str(size)
+        req=urllib.request.Request(url,data=data,headers=headers,method=method)
+        with opener.open(req,timeout=300) as response:return json.load(response)
+
+    user=request('/user')
+    if user['login'].lower()!=REPO.split('/')[0]:raise RuntimeError('Authenticated account differs from the repository owner')
+    releases=request('/repos/'+REPO+'/releases?per_page=100')
+    release=next((r for r in releases if r['tag_name']==TAG),None)
+    if release and not release['draft']:raise RuntimeError('This version is already published; do not overwrite assets')
+    if not release:
+        release=request('/repos/'+REPO+'/releases','POST',{
+            'tag_name':TAG,'target_commitish':args.commit,'name':'声线工作室 '+TAG+' · 完整离线安装包（预发布）',
+            'draft':True,'prerelease':True,
+            'body':'包含 Python、GPT-SoVITS v2Pro、训练和配音基础模型、本地中文转写模型、FFmpeg 及中文工作台。\n\n下载安装程序、offline-package.json 和全部四个 part 分卷，放在同一目录，双击 VoiceStudio-Offline-Setup.exe。无需手动安装 Python 或模型。\n\n这是供仓库所有者验收的草稿。包内切分转写已验证；完整离线训练、干净 Windows 验收及第三方分发材料归档仍未全部完成，暂未公开发布。'})
+    (args.directory/'github-release-record.json').write_text(json.dumps({
+        'id':release['id'],'url':release['html_url'],'draft':release['draft'],'tag':TAG},ensure_ascii=False,indent=2),encoding='utf-8')
+    manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
+    names=['VoiceStudio-Offline-Setup.exe','offline-package.json','SHA256SUMS.txt','安装说明.txt']+[p['name'] for p in manifest['parts']]
+    assets=request('/repos/'+REPO+'/releases/'+str(release['id'])+'/assets?per_page=100')
+    existing={a['name']:a for a in assets}
+    uploaded=[]
+    for name in names:
+        path=args.directory/name
+        if not path.is_file():raise ValueError('Missing asset: '+name)
+        if name in existing:
+            if existing[name]['size']!=path.stat().st_size:raise RuntimeError('Existing asset size differs: '+name)
+            print('Already uploaded: '+name,flush=True);uploaded.append(existing[name]);continue
+        source=ProgressFile(path)
+        try:
+            url=release['upload_url'].split('{',1)[0]+'?name='+urllib.parse.quote(name)
+            asset=request(url,'POST',source,'application/octet-stream',path.stat().st_size)
+        finally:source.close()
+        uploaded.append(asset)
+        print(json.dumps({'asset_uploaded':name,'bytes':asset['size']}),flush=True)
+    (args.directory/'github-release-assets.json').write_text(json.dumps([
+        {'name':a['name'],'bytes':a['size'],'url':a['browser_download_url']} for a in uploaded],ensure_ascii=False,indent=2),encoding='utf-8')
+    print(json.dumps({'draft_release':release['html_url'],'assets':len(uploaded)}),flush=True)
+
+
+if __name__=='__main__':main()
