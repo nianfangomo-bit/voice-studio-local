@@ -27,7 +27,7 @@ class ProgressFile:
     def __init__(self,path):
         self.path=path;self.stream=path.open('rb');self.size=path.stat().st_size;self.done=0;self.last=0
     def read(self,size=-1):
-        data=self.stream.read(size);self.done+=len(data)
+        data=self.stream.read(max(size,1024**2));self.done+=len(data)
         now=time.time()
         if now-self.last>20 or not data:
             print(json.dumps({'asset':self.path.name,'uploaded_bytes':self.done,'total_bytes':self.size}),flush=True)
@@ -40,6 +40,8 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('directory',type=Path)
     parser.add_argument('--commit',required=True)
+    parser.add_argument('--asset',action='append',help='Upload only named package assets; repeat for selected files')
+    parser.add_argument('--retry-incomplete',action='store_true',help='Replace only selected unfinished assets from a failed upload')
     args=parser.parse_args()
     env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GCM_INTERACTIVE='Never')
     credential=subprocess.run(['git','-c','credential.interactive=never','credential','fill'],
@@ -59,7 +61,8 @@ def main():
         if isinstance(data,(dict,list)):data=json.dumps(data).encode()
         if size is not None:headers['Content-Length']=str(size)
         req=urllib.request.Request(url,data=data,headers=headers,method=method)
-        with opener.open(req,timeout=300) as response:return json.load(response)
+        with opener.open(req,timeout=900) as response:
+            return {} if response.status==204 else json.load(response)
 
     user=request('/user')
     if user['login'].lower()!=REPO.split('/')[0]:raise RuntimeError('Authenticated account differs from the repository owner')
@@ -75,12 +78,19 @@ def main():
         'id':release['id'],'url':release['html_url'],'draft':release['draft'],'tag':TAG},ensure_ascii=False,indent=2),encoding='utf-8')
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
     names=['VoiceStudio-Offline-Setup.exe','offline-package.json','SHA256SUMS.txt','安装说明.txt']+[p['name'] for p in manifest['parts']]
+    if args.asset:
+        if any(name not in names for name in args.asset): raise ValueError('Unknown package asset')
+        names=args.asset
     assets=request('/repos/'+REPO+'/releases/'+str(release['id'])+'/assets?per_page=100')
     existing={a['name']:a for a in assets}
     uploaded=[]
     for name in names:
         path=args.directory/name
         if not path.is_file():raise ValueError('Missing asset: '+name)
+        if name in existing:
+            if existing[name].get('state')!='uploaded' and args.retry_incomplete and args.asset:
+                request('/repos/'+REPO+'/releases/assets/'+str(existing[name]['id']),'DELETE')
+                del existing[name]
         if name in existing:
             if existing[name]['size']!=path.stat().st_size:raise RuntimeError('Existing asset size differs: '+name)
             print('Already uploaded: '+name,flush=True);uploaded.append(existing[name]);continue
@@ -91,7 +101,8 @@ def main():
         finally:source.close()
         uploaded.append(asset)
         print(json.dumps({'asset_uploaded':name,'bytes':asset['size']}),flush=True)
-    (args.directory/'github-release-assets.json').write_text(json.dumps([
+    record_name='github-release-assets.json' if not args.asset else 'github-release-assets-'+args.asset[0]+'.json'
+    (args.directory/record_name).write_text(json.dumps([
         {'name':a['name'],'bytes':a['size'],'url':a['browser_download_url']} for a in uploaded],ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'draft_release':release['html_url'],'assets':len(uploaded)}),flush=True)
 

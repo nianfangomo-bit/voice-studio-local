@@ -1,6 +1,6 @@
 # 声线工作室 · Windows 本地配音
 
-版本：`v0.2.0-alpha.2`，2026-10-31。完整离线 ZIP 和 Windows 安装程序已构建：压缩 7.22 GiB，解压 9.52 GiB，附 4 个小于 2 GiB 的分卷。安装包上传至 GitHub Release 草稿供所有者验收；公开下载尚未发布。
+版本：`v0.2.0-alpha.2`，2026-10-31。完整离线 ZIP 和 Windows 安装程序已构建：压缩 7.22 GiB，解压 9.52 GiB，附 4 个小于 2 GiB 的分卷。安装文件正在上传至 GitHub Release 草稿，分卷尚未传完；公开下载尚未发布。
 
 ## 完整离线包怎么用
 
@@ -9,6 +9,8 @@
 下载 `VoiceStudio-Offline-Setup.exe`、`offline-package.json` 以及四个 `.part001`～`.part004`，放到同一文件夹，双击安装程序。它会检查分卷、校验、合并并解压到新目录。也可以将完整 ZIP 直接解压，运行 `启动.cmd`。不要求另装 Python 或 CUDA Toolkit，训练和配音仍需要兼容的 NVIDIA 显卡驱动。
 
 完整操作见 [离线包使用说明](app/OFFLINE-README.md)；组件来源及公开分发待办见 [离线组件说明](app/OFFLINE-THIRD-PARTY.md)。普通 GitHub 源码 ZIP 不包含运行时和模型，请以 Release 安装资产为准。当前没有公开下载链接，不要将源码链接宣传为完整离线安装包。
+
+已实际完成安装程序安装、全包文件校验及安装后的切分转写，见 [离线包验收记录](docs/离线安装包验收.md)。
 
 基于 GPT-SoVITS 的中文工作台，使用 Codex 辅助开发。与 OpenAI、GPT-SoVITS 作者没有官方隶属或认证关系。
 
