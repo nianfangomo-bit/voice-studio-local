@@ -8,7 +8,10 @@ from pathlib import Path
 parser=argparse.ArgumentParser()
 parser.add_argument('archive',type=Path)
 parser.add_argument('--output',type=Path,required=True)
+parser.add_argument('--part-mib',type=int,default=256)
 args=parser.parse_args()
+if not 64 <= args.part_mib <= 1900: raise ValueError('part-mib must be between 64 and 1900')
+part_bytes=args.part_mib*1024**2
 archive=args.archive.resolve()
 output=args.output.resolve()
 if output.exists():raise ValueError('Use a new output directory')
@@ -27,8 +30,8 @@ with archive.open('rb') as source:
             chunk=first
             while chunk:
                 target.write(chunk);digest.update(chunk);whole.update(chunk);size+=len(chunk)
-                if size>=1900*1024**2:break
-                chunk=source.read(min(4*1024**2,1900*1024**2-size))
+                if size>=part_bytes:break
+                chunk=source.read(min(4*1024**2,part_bytes-size))
         parts.append({'name':name,'bytes':size,'sha256':digest.hexdigest()})
         print(json.dumps(parts[-1]),flush=True)
         index+=1

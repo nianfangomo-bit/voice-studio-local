@@ -29,6 +29,8 @@ def main():
     release=root.parent if (root.parent/'LICENSE').is_file() else root.parent/'voice-studio-release'
     files += [(release/'LICENSE','LICENSE')]
     files += [(p,'licenses/'+p.name) for p in sorted((release/'licenses').glob('*.txt'))]
+    files += [(p,'third-party-sources/'+p.name) for p in sorted((root/'third-party-sources').glob('*')) if p.is_file()]
+    files += [(release/'docs/cover.png','项目封面.png')]
     notices = root/'OFFLINE-THIRD-PARTY.md'
     if notices.is_file(): files.append((notices,'第三方组件说明.md'))
     files = [(p,n) for p,n in files if n!='engine/GPT_SoVITS/configs/tts_infer.yaml']

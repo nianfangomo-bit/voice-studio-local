@@ -17,7 +17,7 @@ public static class OfflineInstaller {
     public static Package ReadPackage() {
         var serializer = new JavaScriptSerializer();
         var p = serializer.Deserialize<Package>(File.ReadAllText(Path.Combine(Source, "offline-package.json")));
-        if (p == null || p.parts == null || p.parts.Count == 0 || p.parts.Count > 30 || Path.GetFileName(p.folder) != p.folder)
+        if (p == null || p.parts == null || p.parts.Count == 0 || p.parts.Count > 200 || Path.GetFileName(p.folder) != p.folder)
             throw new Exception("安装清单不完整，请重新下载同一版本的安装文件。");
         foreach (var part in p.parts)
             if (Path.GetFileName(part.name) != part.name || part.bytes <= 0 || part.sha256 == null || part.sha256.Length != 64)

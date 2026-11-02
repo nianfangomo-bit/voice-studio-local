@@ -11,7 +11,7 @@ from pathlib import Path
 
 APP_FILES = ['studio.py','server.py','launcher.py','training.py','training_worker.py',
              'inference_worker.py','engine_entry.py','preparation.py','preparation_worker.py',
-             '启动.cmd','static/index.html','static/app.js','static/style.css','legacy/voice_tool/main.py']
+             '启动.cmd','package.json','static/index.html','static/app.js','static/style.css','legacy/voice_tool/main.py']
 MODEL_PATHS = ['chinese-hubert-base','chinese-roberta-wwm-ext-large','fast_langdetect',
                'sv/pretrained_eres2netv2w24s4ep4.ckpt','v2Pro/s2Gv2Pro.pth',
                'v2Pro/s2Dv2Pro.pth','s1v3.ckpt']

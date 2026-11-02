@@ -20,7 +20,7 @@ app_files.update({'preparation.py','preparation_worker.py','build_portable.py',
                   'tests/test_preparation.py','tests/test_preparation_api.py'})
 app_files.update({'offline_check.py','环境检查.cmd','Start.cmd','OFFLINE-README.md',
                   'OFFLINE-THIRD-PARTY.md','package_offline.py','split_offline.py',
-                  'OfflineSetup.cs','publish_offline_release.py'})
+                  'OfflineSetup.cs','publish_offline_release.py','DownloadOffline.ps1'})
 files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_files)]
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
 files.append(root/'docs/cover.png')
