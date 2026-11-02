@@ -4,7 +4,9 @@ from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('directory',type=Path);args=p.parse_args()
 root=args.directory.resolve();ffmpeg=root/'ffmpeg.exe';ffprobe=root/'ffprobe.exe'
 def run(cmd):
-    return subprocess.run([str(x) for x in cmd],capture_output=True,check=True,timeout=60)
+    result=subprocess.run([str(x) for x in cmd],capture_output=True,timeout=60)
+    if result.returncode: raise RuntimeError(result.stderr.decode(errors='replace'))
+    return result
 for line in (root/'SHA256SUMS.txt').read_text().splitlines():
     digest,name=line.split(maxsplit=1)
     assert hashlib.sha256((root/name.strip()).read_bytes()).hexdigest()==digest

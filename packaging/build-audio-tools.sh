@@ -18,7 +18,7 @@ cd "$build_dir"
   --disable-pthreads --disable-w32threads --disable-os2threads --disable-hwaccels \
   --disable-shared --enable-static --enable-small \
   --disable-encoders --enable-encoder=pcm_s16le,pcm_f32le \
-  --disable-muxers --enable-muxer=wav,f32le \
+  --disable-muxers --enable-muxer=wav,pcm_f32le \
   --disable-demuxers --enable-demuxer=wav,mp3,mov,flac,ogg,aac \
   --disable-decoders --enable-decoder=pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_f64le,pcm_u8,pcm_s16be,pcm_s24be,pcm_s32be,pcm_alaw,pcm_mulaw,mp3,mp3float,aac,aac_fixed,alac,flac,vorbis,opus \
   --disable-filters --enable-filter=aresample,aformat,anull \
