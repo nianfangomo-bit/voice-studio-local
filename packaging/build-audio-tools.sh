@@ -14,11 +14,14 @@ cd "$build_dir"
 ./configure --target-os=mingw32 --arch=x86_64 --cross-prefix=x86_64-w64-mingw32- \
   --enable-cross-compile --disable-autodetect --disable-network \
   --disable-gpl --disable-nonfree --disable-version3 --disable-doc --disable-debug \
-  --disable-x86asm --disable-avdevice --disable-postproc --disable-ffplay \
+  --disable-x86asm --disable-inline-asm --disable-avdevice --disable-postproc --disable-ffplay \
   --disable-pthreads --disable-w32threads --disable-os2threads --disable-hwaccels \
   --disable-shared --enable-static --enable-small \
   --disable-encoders --enable-encoder=pcm_s16le,pcm_f32le \
   --disable-muxers --enable-muxer=wav,f32le \
+  --disable-demuxers --enable-demuxer=wav,mp3,mov,flac,ogg,aac \
+  --disable-decoders --enable-decoder=pcm_s16le,pcm_s24le,pcm_s32le,pcm_f32le,pcm_f64le,pcm_u8,pcm_s16be,pcm_s24be,pcm_s32be,pcm_alaw,pcm_mulaw,mp3,mp3float,aac,aac_fixed,alac,flac,vorbis,opus \
+  --disable-filters --enable-filter=aresample,aformat,anull \
   --disable-protocols --enable-protocol=file,pipe \
   --extra-ldflags='-static -static-libgcc' 2>&1 | tee "$destination/configure.log"
 make -j2 ffmpeg.exe ffprobe.exe 2>&1 | tee "$destination/build.log"
