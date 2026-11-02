@@ -110,15 +110,22 @@ def make_app(studio, token, port):
             raise ValueError('单个录音不能超过 512 MB，请先拆分。')
         partial = target.with_suffix(target.suffix + '.partial')
         size = 0
-        with partial.open('xb') as stream:
-            async for chunk in request.stream():
-                size += len(chunk)
-                if size > MAX_UPLOAD:
-                    raise ValueError('单个录音超过 512 MB，未加入素材库。')
-                stream.write(chunk)
-        if not size:
-            raise ValueError('录音文件为空，请重新选择。')
-        partial.replace(target)
+        created = False
+        try:
+            with partial.open('xb') as stream:
+                created = True
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > MAX_UPLOAD:
+                        raise ValueError('单个录音超过 512 MB，未加入素材库。')
+                    stream.write(chunk)
+            if not size:
+                raise ValueError('录音文件为空，请重新选择。')
+            partial.replace(target)
+        finally:
+            # Only remove this request's unfinished temporary file, never recordings.
+            if created and partial.exists():
+                partial.unlink()
         return register_upload(studio, did, target, name)
 
     @app.post('/api/datasets/{did}/prepare')
@@ -225,9 +232,18 @@ def main():
         try:
             msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
         except OSError:
+            lock.close()
             print('软件已在运行；请打开原窗口。')
             return 1
+    atexit.register(lock.close)
     s = Studio()
+    bundled = ROOT / 'engine' / 'runtime' / 'python.exe'
+    if bundled.is_file():
+        existing = s.settings()
+        if not existing or not Path(existing.get('runtime', '')).is_file():
+            engine = bundled.parents[1]
+            s.configure({'trusted': True, 'engine': str(engine), 'legacy': str(ROOT / 'legacy'),
+                         'ffmpeg': str(engine / 'runtime' / 'ffmpeg.exe')})
     token = secrets.token_urlsafe(32)
     url = f'http://127.0.0.1:{args.port}/#{token}'
     atomic_json(s.root / 'session.json', {'url': url, 'pid': os.getpid()})
@@ -241,6 +257,7 @@ def main():
     s.wake.set()
     if s.thread:
         s.thread.join(25)
+    lock.close()
     return 0
 
 

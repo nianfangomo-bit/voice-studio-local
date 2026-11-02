@@ -34,17 +34,8 @@ def main():
     bootstrap = ROOT / 'data' / 'bootstrap.json'
     bundled = ROOT / 'engine' / 'runtime' / 'python.exe'
     if bundled.is_file():
-        from studio import Studio
-        studio = Studio()
-        existing = studio.settings()
-        engine = bundled.parents[1]
-        if not existing or not Path(existing.get('runtime', '')).is_file():
-            try:
-                studio.configure({'trusted': True, 'engine': str(engine), 'legacy': str(ROOT / 'legacy'),
-                                  'ffmpeg': str(engine / 'runtime' / 'ffmpeg.exe')})
-            except (OSError, ValueError) as exc:
-                messagebox.showerror('完整包缺少组件', str(exc) + '\n请检查是否完整解压，不要移动单个程序文件。')
-                return
+        # Initialization/recovery belongs to the service, after its exclusive lock.
+        # Merely reopening the launcher must never mark active jobs interrupted.
         bootstrap.parent.mkdir(parents=True, exist_ok=True)
         bootstrap.write_text(json.dumps({'runtime': str(bundled)}), encoding='utf-8')
     try:

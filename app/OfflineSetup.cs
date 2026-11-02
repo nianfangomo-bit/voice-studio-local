@@ -19,16 +19,19 @@ public static class OfflineInstaller {
         var serializer = new JavaScriptSerializer();
         var p = serializer.Deserialize<Package>(File.ReadAllText(Path.Combine(Source, "offline-package.json")));
         if (p == null || p.parts == null || p.parts.Count == 0 || p.parts.Count > 200 ||
-            p.folder == null || !Regex.IsMatch(p.folder, @"^VoiceStudio-[0-9][A-Za-z0-9.\-]*-win64-offline$") ||
+            p.version == null || !Regex.IsMatch(p.version, @"\A[0-9][A-Za-z0-9.\-]*\z") ||
+            p.folder != "VoiceStudio-"+p.version+"-win64-offline" ||
             p.archive_sha256 == null || !Regex.IsMatch(p.archive_sha256, @"\A[0-9a-fA-F]{64}\z") ||
             p.unpacked_bytes <= 0 || p.unpacked_bytes > 100L*1024*1024*1024)
             throw new Exception("安装清单不完整，请重新下载同一版本的安装文件。");
         var partNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var part in p.parts)
-            if (part == null || part.name == null || !Regex.IsMatch(part.name, @"\AVoiceStudio-[0-9][A-Za-z0-9.\-]*-win64-offline\.zip\.part[0-9]{3}\z") ||
+        for (int index=0; index<p.parts.Count; index++) {
+            var part=p.parts[index];
+            if (part == null || part.name != p.folder+".zip.part"+(index+1).ToString("D3") ||
                 !partNames.Add(part.name) || part.bytes <= 0 || part.bytes > 2L*1024*1024*1024 ||
                 part.sha256 == null || !Regex.IsMatch(part.sha256, @"\A[0-9a-fA-F]{64}\z"))
                 throw new Exception("安装分卷清单无效。");
+        }
         return p;
     }
     static string Hash(string path) {
@@ -86,14 +89,16 @@ public static class OfflineInstaller {
                 if(!normalized.StartsWith(p.folder+"/",StringComparison.Ordinal) || normalized.Contains("../") || normalized.Contains(":"))
                     throw new Exception("压缩包路径异常，停止安装。");
                 foreach(var component in normalized.Split('/'))
-                    if(component==".." || component=="." || component.EndsWith(".") || component.EndsWith(" "))
+                    if(component==".." || component=="." || component.EndsWith(".") || component.EndsWith(" ") ||
+                        component.IndexOfAny(Path.GetInvalidFileNameChars())>=0 ||
+                        Regex.IsMatch(component, @"\A(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|\z)", RegexOptions.IgnoreCase))
                         throw new Exception("压缩包包含不安全路径，停止安装。");
                 if(!entryNames.Add(normalized.TrimEnd('/')) || ((entry.ExternalAttributes >> 16) & 0xF000)==0xA000)
                     throw new Exception("压缩包包含重复路径或符号链接，停止安装。");
                 unpacked+=entry.Length;
             }
         }
-        if(unpacked>p.unpacked_bytes+1024*1024) throw new Exception("解压大小与清单不一致。");
+        if(unpacked!=p.unpacked_bytes) throw new Exception("解压大小与清单不一致。");
         var extract=Path.Combine(stage,"unpacked");Directory.CreateDirectory(extract);
         report("正在解压运行环境和模型（约 10 GB，请稍候）",50);
         var start=new ProcessStartInfo(tar,"-xf \""+joined+"\" -C \""+extract+"\"");

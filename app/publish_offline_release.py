@@ -5,7 +5,9 @@ Credentials stay in memory, are never printed or saved, and are sent only to
 api.github.com / uploads.github.com. Run with the user's configured HTTPS proxy.
 """
 import argparse
+import hashlib
 import json
+import re
 import os
 import subprocess
 import time
@@ -15,6 +17,33 @@ import urllib.request
 from pathlib import Path
 
 REPO='nianfangomo-bit/voice-studio-local'
+
+
+def validate_package(directory, manifest):
+    """Validate the full set before any authenticated network write."""
+    version=manifest.get('version','')
+    if not re.fullmatch(r'[0-9][A-Za-z0-9.\-]*',version):
+        raise ValueError('Invalid package version')
+    folder='VoiceStudio-'+version+'-win64-offline'
+    if manifest.get('folder')!=folder or not 1<=len(manifest.get('parts',[]))<=200:
+        raise ValueError('Invalid package manifest')
+    whole=hashlib.sha256()
+    for index,part in enumerate(manifest['parts'],1):
+        if part.get('name')!=folder+'.zip.part%03d'%index:
+            raise ValueError('Mixed versions or unordered parts')
+        path=directory/part['name']
+        if not path.is_file() or path.stat().st_size!=part['bytes'] or not 0<part['bytes']<=2*1024**3:
+            raise ValueError('Missing or incomplete part: '+part['name'])
+        digest=hashlib.sha256()
+        with path.open('rb') as source:
+            for chunk in iter(lambda:source.read(4*1024**2),b''):
+                whole.update(chunk);digest.update(chunk)
+        if digest.hexdigest()!=part.get('sha256'):
+            raise ValueError('Part checksum mismatch: '+part['name'])
+    if whole.hexdigest()!=manifest.get('archive_sha256'):
+        raise ValueError('Archive checksum mismatch')
+    for name in ('VoiceStudio-Offline-Setup.exe','SHA256SUMS.txt','安装说明.txt'):
+        if not (directory/name).is_file():raise ValueError('Missing release file: '+name)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -43,6 +72,7 @@ def main():
     parser.add_argument('--retry-incomplete',action='store_true',help='Replace only selected unfinished assets from a failed upload')
     args=parser.parse_args()
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
+    validate_package(args.directory,manifest)
     TAG='v'+manifest['version']
     env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GCM_INTERACTIVE='Never')
     credential=subprocess.run(['git','-c','credential.interactive=never','credential','fill'],
@@ -74,7 +104,7 @@ def main():
         release=request('/repos/'+REPO+'/releases','POST',{
             'tag_name':TAG,'target_commitish':args.commit,'name':'声线工作室 '+TAG+' · 完整离线安装包（预发布）',
             'draft':True,'prerelease':True,
-            'body':'包含 Python、GPT-SoVITS v2Pro、训练和配音基础模型、本地中文转写模型、FFmpeg 及中文工作台。\n\n下载安装程序、offline-package.json 和全部四个 part 分卷，放在同一目录，双击 VoiceStudio-Offline-Setup.exe。无需手动安装 Python 或模型。\n\n这是供仓库所有者验收的草稿。包内切分转写已验证；完整离线训练、干净 Windows 验收及第三方分发材料归档仍未全部完成，暂未公开发布。'})
+            'body':'包含 Python、GPT-SoVITS v2Pro、训练和配音基础模型、本地中文转写模型、FFmpeg 及中文工作台。\n\n下载安装程序、offline-package.json 和全部 '+str(len(manifest['parts']))+' 个 part 分卷，放在同一目录，双击 VoiceStudio-Offline-Setup.exe。无需手动安装 Python 或模型。\n\n这是供仓库所有者验收的草稿；以此包对应的验收记录为准。干净 Windows 验收及第三方分发材料归档未全部完成前，不公开发布。'})
     (args.directory/'github-release-record.json').write_text(json.dumps({
         'id':release['id'],'url':release['html_url'],'draft':release['draft'],'tag':TAG},ensure_ascii=False,indent=2),encoding='utf-8')
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))

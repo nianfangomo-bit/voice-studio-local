@@ -1,6 +1,7 @@
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fastapi.testclient import TestClient
@@ -40,6 +41,35 @@ class RecordingApiTests(unittest.TestCase):
         self.assertEqual(self.client.post(f'/api/datasets/{did}/recordings?filename=a.wav', content=b'').status_code,400)
         self.assertEqual(self.client.post(f'/api/datasets/{did}/recordings?filename=a.exe', content=b'x').status_code,400)
         self.assertFalse(self.s.get('datasets',did)['recordings'])
+        self.assertFalse(list(self.s.root.rglob('*.partial')))
+
+    def test_oversize_stream_removes_only_own_partial(self):
+        did = self.create()
+        folder = self.s.root / 'datasets' / did / 'originals'
+        folder.mkdir(parents=True)
+        retained = folder / 'previous.wav'
+        retained.write_bytes(b'keep')
+        with patch('preparation.MAX_UPLOAD', 3):
+            response = self.client.post(f'/api/datasets/{did}/recordings?filename=a.wav',
+                                        content=b'too large', headers={'content-length':'0'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(retained.read_bytes(), b'keep')
+        self.assertFalse(list(folder.glob('*.partial')))
+        self.assertFalse(self.s.get('datasets',did)['recordings'])
+
+    def test_host_and_missing_origin_rejected(self):
+        self.assertEqual(self.client.get('/api/state',headers={'host':'attacker.test'}).status_code,403)
+        del self.client.headers['Origin']
+        self.assertEqual(self.client.post('/api/recording-datasets',json={'name':'test','authorized':True}).status_code,403)
+
+    def test_connect_requires_start_token(self):
+        self.client.cookies.clear()
+        self.assertEqual(self.client.post('/connect').status_code,401)
+        response=self.client.post('/connect',headers={'x-start-token':'test-token'})
+        self.assertEqual(response.status_code,200)
+        self.assertIn('HttpOnly',response.headers['set-cookie'])
+        self.assertIn('SameSite=strict',response.headers['set-cookie'])
+        self.assertEqual(self.client.get('/api/state').status_code,200)
 
     def test_origin_and_cookie_required(self):
         did = self.create()

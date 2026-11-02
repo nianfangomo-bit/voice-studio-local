@@ -41,6 +41,8 @@ def register_upload(studio, did, target, name):
         ds = studio.get('datasets', did)
         if studio.busy(did):
             raise ValueError('已有任务开始处理，本次上传文件保留，但未加入素材库。')
+        if len(ds['recordings']) >= 30:
+            raise ValueError('素材库已达到 30 个录音上限；本次上传文件保留，但未加入素材库。')
         ds['recordings'].append({'id': target.stem, 'name': name, 'path': str(target),
                                  'hash': digest(target), 'bytes': target.stat().st_size})
         ds['revision'] += 1

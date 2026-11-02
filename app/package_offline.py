@@ -31,9 +31,12 @@ def main():
     omitted=[]
     if args.trim_unused:
         excluded=set()
+        kept_records=[]
         for metadata in (engine/'runtime/Lib/site-packages').glob('*.dist-info/METADATA'):
             package=email.message_from_string(metadata.read_text(encoding='utf-8',errors='replace'))
-            if package.get('Name','').lower().replace('_','-') not in {'av','faster-whisper','ctranslate2','pysimplegui'}:continue
+            if package.get('Name','').lower().replace('_','-') not in {'av','faster-whisper','ctranslate2','pysimplegui','langsegment','eunjeon'}:
+                kept_records.append(metadata.parent/'RECORD')
+                continue
             record=metadata.parent/'RECORD'
             if not record.is_file():raise ValueError('Missing RECORD for optional package: '+str(metadata))
             for row in csv.reader(record.read_text(encoding='utf-8').splitlines()):
@@ -41,6 +44,11 @@ def main():
                 if engine.resolve() not in p.parents:raise ValueError('Package record escapes engine')
                 excluded.add(p)
             omitted.append({'name':package.get('Name'),'version':package.get('Version')})
+        for record in kept_records:
+            if not record.is_file():continue
+            for row in csv.reader(record.read_text(encoding='utf-8').splitlines()):
+                if row and (record.parent.parent/row[0]).is_file() and (record.parent.parent/row[0]).resolve() in excluded:
+                    raise ValueError('Cannot trim shared dependency file: '+row[0])
         files=[(p,n) for p,n in files if p.resolve() not in excluded]
     if args.audio_tools:
         audio=args.audio_tools.resolve()
