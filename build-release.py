@@ -24,6 +24,9 @@ app_files.update({'offline_check.py','环境检查.cmd','Start.cmd','OFFLINE-REA
 files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_files)]
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
 files.append(root/'docs/cover.png')
+files += sorted((root/'packaging').glob('*.py')) + sorted((root/'packaging').glob('*.sh'))
+files += sorted((root/'.github/workflows').glob('*.yml'))
+files += [p for p in sorted((root/'app/third-party-sources').glob('*')) if p.is_file()]
 manifest = []
 for p in files:
     data = p.read_bytes()

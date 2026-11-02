@@ -13,7 +13,9 @@
 
 Python、PyTorch、NVIDIA CUDA 运行库及其他 Python 软件包的版权许可保留在 `engine/runtime/LICENSE.txt`、各 `*.dist-info` 的 LICENSE / licenses / METADATA，以及库内原有授权文件中。React 等前端许可见根目录 `licenses` 和页面脚本保留的注释。
 
-本包随附 FFmpeg 版本 `n4.3.2-160-gfbb9368226`，其 `-L` 输出声明适用 LGPL v3 或以后版本。官方源码及许可入口：https://ffmpeg.org/ 。本软件通过独立进程调用 FFmpeg。现有二进制的完整对应源码与第三方构建材料尚未归档，所以这份本机离线预发布包目前未作为公开下载资产发布；正式公开分发前应补齐相应材料。
+通过 `--audio-tools` 构建的新版候选包使用统一 FFmpeg/ffprobe 音频工具，源码提交为 `fbb9368226d693c99d9b0aee672c59ed1a36785b`。构建禁用 GPL、nonfree、外部库自动探测和网络协议，适用 LGPL 2.1 或以后版本；本软件通过独立进程调用。对应的完整 FFmpeg 源码、许可证、构建脚本、配置与日志随包保存于 `third-party-sources/audio-tools`。官方入口：https://ffmpeg.org/ 。没有使用 `--audio-tools` 的旧候选包不适用本段新构建说明，不作为本次正式发行资产。
+
+构建选择记录于 `build-choices.json`。使用 `--trim-unused` 时会排除未用于本工作台中文 Paraformer 流程的 Faster-Whisper、CTranslate2、PyAV（含其附带媒体库）及 PySimpleGUI；不修改用户原环境。排除后的完整包仍须完成真实训练与配音复测。其余运行时许可证保留；组件清单仅记录来源与材料，不代表自动法律认证。
 
 ## 素材与用途
 

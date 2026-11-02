@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 public class Part { public string name; public long bytes; public string sha256; }
 public class Package { public string version; public string folder; public string archive_sha256; public long unpacked_bytes; public List<Part> parts; }
@@ -17,10 +18,16 @@ public static class OfflineInstaller {
     public static Package ReadPackage() {
         var serializer = new JavaScriptSerializer();
         var p = serializer.Deserialize<Package>(File.ReadAllText(Path.Combine(Source, "offline-package.json")));
-        if (p == null || p.parts == null || p.parts.Count == 0 || p.parts.Count > 200 || Path.GetFileName(p.folder) != p.folder)
+        if (p == null || p.parts == null || p.parts.Count == 0 || p.parts.Count > 200 ||
+            p.folder == null || !Regex.IsMatch(p.folder, @"^VoiceStudio-[0-9][A-Za-z0-9.\-]*-win64-offline$") ||
+            p.archive_sha256 == null || !Regex.IsMatch(p.archive_sha256, @"\A[0-9a-fA-F]{64}\z") ||
+            p.unpacked_bytes <= 0 || p.unpacked_bytes > 100L*1024*1024*1024)
             throw new Exception("安装清单不完整，请重新下载同一版本的安装文件。");
+        var partNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var part in p.parts)
-            if (Path.GetFileName(part.name) != part.name || part.bytes <= 0 || part.sha256 == null || part.sha256.Length != 64)
+            if (part == null || part.name == null || !Regex.IsMatch(part.name, @"\AVoiceStudio-[0-9][A-Za-z0-9.\-]*-win64-offline\.zip\.part[0-9]{3}\z") ||
+                !partNames.Add(part.name) || part.bytes <= 0 || part.bytes > 2L*1024*1024*1024 ||
+                part.sha256 == null || !Regex.IsMatch(part.sha256, @"\A[0-9a-fA-F]{64}\z"))
                 throw new Exception("安装分卷清单无效。");
         return p;
     }
@@ -44,6 +51,11 @@ public static class OfflineInstaller {
             throw new Exception("安装目录已经存在，请选择一个新的空目录，以保留已有声线和作品。");
         var parent=Directory.GetParent(destination);
         if(parent==null || !parent.Exists) throw new Exception("请选择已有磁盘中的安装位置。");
+        var tar=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"tar.exe");
+        if(!File.Exists(tar)) throw new Exception("当前 Windows 缺少 tar.exe。请使用 Windows 10 更新版或 Windows 11；可以改用完整 ZIP 手动解压。");
+        var permissionProbe=Path.Combine(parent.FullName,".voice-studio-write-check-"+Guid.NewGuid().ToString("N"));
+        try { using(File.Create(permissionProbe)) {} File.Delete(permissionProbe); }
+        catch(UnauthorizedAccessException) {throw new Exception("此目录不可写。请选择当前用户有权限的新目录，例如 D 盘个人文件夹；已有安装未改动。");}
         long packed=0; foreach(var part in p.parts) packed+=part.bytes;
         if(new DriveInfo(Path.GetPathRoot(destination)).AvailableFreeSpace < packed+p.unpacked_bytes+1024L*1024*1024)
             throw new Exception("剩余空间不足，安装时需要分卷合并和解压空间。建议至少预留 30 GB。");
@@ -67,17 +79,21 @@ public static class OfflineInstaller {
         if(!String.Equals(Hash(joined),p.archive_sha256,StringComparison.OrdinalIgnoreCase))
             throw new Exception("完整压缩包校验失败，安装已停止；请重新下载分卷。暂存位置："+stage);
         long unpacked=0;
+        var entryNames=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         using(var archive=ZipFile.OpenRead(joined)) {
             foreach(var entry in archive.Entries) {
                 string normalized=entry.FullName.Replace('\\','/');
                 if(!normalized.StartsWith(p.folder+"/",StringComparison.Ordinal) || normalized.Contains("../") || normalized.Contains(":"))
                     throw new Exception("压缩包路径异常，停止安装。");
+                foreach(var component in normalized.Split('/'))
+                    if(component==".." || component=="." || component.EndsWith(".") || component.EndsWith(" "))
+                        throw new Exception("压缩包包含不安全路径，停止安装。");
+                if(!entryNames.Add(normalized.TrimEnd('/')) || ((entry.ExternalAttributes >> 16) & 0xF000)==0xA000)
+                    throw new Exception("压缩包包含重复路径或符号链接，停止安装。");
                 unpacked+=entry.Length;
             }
         }
         if(unpacked>p.unpacked_bytes+1024*1024) throw new Exception("解压大小与清单不一致。");
-        var tar=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"tar.exe");
-        if(!File.Exists(tar)) throw new Exception("当前 Windows 缺少 tar.exe。请使用 Windows 10 更新版或 Windows 11；可以改用完整 ZIP 手动解压。");
         var extract=Path.Combine(stage,"unpacked");Directory.CreateDirectory(extract);
         report("正在解压运行环境和模型（约 10 GB，请稍候）",50);
         var start=new ProcessStartInfo(tar,"-xf \""+joined+"\" -C \""+extract+"\"");

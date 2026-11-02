@@ -4,7 +4,11 @@ import hashlib
 import json
 import time
 import zipfile
+import csv
+import email
+import sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
 from build_portable import inventory, APP_FILES
 
 VERSION = json.loads((Path(__file__).resolve().parent/'package.json').read_text(encoding='utf-8'))['version']
@@ -14,6 +18,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--audio-tools',type=Path,help='Verified unified FFmpeg build with source and notices')
+    parser.add_argument('--trim-unused',action='store_true',help='Exclude optional Whisper/PyAV and unused GUI packages; requires full functional retest')
     args = parser.parse_args()
     root=Path(__file__).resolve().parent
     engine=args.engine.resolve()
@@ -22,6 +28,32 @@ def main():
     if dest.exists():raise ValueError('Do not overwrite a previous package')
     prefix='VoiceStudio-'+VERSION+'-win64-offline/'
     files=[(p,'engine/'+p.relative_to(engine).as_posix()) for p in inventory(engine)]
+    omitted=[]
+    if args.trim_unused:
+        excluded=set()
+        for metadata in (engine/'runtime/Lib/site-packages').glob('*.dist-info/METADATA'):
+            package=email.message_from_string(metadata.read_text(encoding='utf-8',errors='replace'))
+            if package.get('Name','').lower().replace('_','-') not in {'av','faster-whisper','ctranslate2','pysimplegui'}:continue
+            record=metadata.parent/'RECORD'
+            if not record.is_file():raise ValueError('Missing RECORD for optional package: '+str(metadata))
+            for row in csv.reader(record.read_text(encoding='utf-8').splitlines()):
+                p=(metadata.parent.parent/row[0]).resolve()
+                if engine.resolve() not in p.parents:raise ValueError('Package record escapes engine')
+                excluded.add(p)
+            omitted.append({'name':package.get('Name'),'version':package.get('Version')})
+        files=[(p,n) for p,n in files if p.resolve() not in excluded]
+    if args.audio_tools:
+        audio=args.audio_tools.resolve()
+        checks=json.loads((audio/'windows-smoke.json').read_text(encoding='utf-8'))
+        for key in ('wav_conversion','float_pipe_for_engine','ffprobe','unicode_space_path'):
+            if checks.get(key) is not True:raise ValueError('Audio tools have not passed Windows checks')
+        for line in (audio/'SHA256SUMS.txt').read_text().splitlines():
+            expected,name=line.split(maxsplit=1);name=name.strip()
+            if Path(name).name!=name:raise ValueError('Unsafe audio artifact path')
+            if hashlib.sha256((audio/name).read_bytes()).hexdigest()!=expected:raise ValueError('Audio artifact hash mismatch')
+        files=[(p,n) for p,n in files if n not in ('engine/runtime/ffmpeg.exe','engine/runtime/ffprobe.exe')]
+        files += [(audio/n,'engine/runtime/'+n) for n in ('ffmpeg.exe','ffprobe.exe')]
+        files += [(p,'third-party-sources/audio-tools/'+p.name) for p in sorted(audio.iterdir()) if p.is_file() and p.suffix!='.exe']
     files += [(root/p,p) for p in APP_FILES]
     files += [(root/p,p) for p in ['offline_check.py','环境检查.cmd','Start.cmd']]
     files += [(root/'OFFLINE-README.md','使用说明.md')]
@@ -53,6 +85,9 @@ def main():
         data=json.dumps(config).encode()
         name='engine/GPT_SoVITS/configs/tts_infer.yaml'
         archive.writestr(prefix+name,data)
+        manifest.append({'path':name,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+        data=json.dumps({'omitted_optional_packages':omitted,'unified_audio_tools':bool(args.audio_tools),'note':'Build choices; not a substitute for final package functional acceptance.'},ensure_ascii=False,indent=2).encode('utf-8')
+        name='build-choices.json';archive.writestr(prefix+name,data)
         manifest.append({'path':name,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
         archive.writestr(prefix+'package-manifest.json',json.dumps({'version':VERSION,'files':manifest},ensure_ascii=False,indent=2))
     # Reject any accidental personal-data or trained-weight root before delivery.
