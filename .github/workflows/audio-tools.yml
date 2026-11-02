@@ -1,0 +1,37 @@
+name: Build verified Windows audio tools
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated cross compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64 make
+      - name: Build from checked source
+        run: bash packaging/build-audio-tools.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-tools-candidate
+          path: audio-tools-dist/
+          if-no-files-found: error
+  windows-check:
+    needs: build
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio-tools-candidate
+          path: audio-tools-dist
+      - name: Test bundled executables on Windows
+        run: python packaging/test-audio-tools.py audio-tools-dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-tools-windows-verified
+          path: audio-tools-dist/
+          if-no-files-found: error
