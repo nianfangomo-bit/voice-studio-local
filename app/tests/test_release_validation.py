@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from publish_offline_release import validate_package
+from publish_offline_release import validate_package,validate_existing_asset
 
 class ReleaseValidationTests(unittest.TestCase):
     def setUp(self):
@@ -31,5 +31,16 @@ class ReleaseValidationTests(unittest.TestCase):
     def test_missing_instructions(self):
         (self.root/'安装说明.txt').unlink()
         with self.assertRaises(ValueError):validate_package(self.root,self.manifest)
+    def test_existing_same_size_wrong_content_rejected(self):
+        part=self.manifest['parts'][0];path=self.root/part['name']
+        with self.assertRaises(RuntimeError):
+            validate_existing_asset(path,{'state':'uploaded','size':part['bytes'],'digest':'sha256:'+'0'*64})
+    def test_existing_missing_digest_rejected(self):
+        part=self.manifest['parts'][0]
+        with self.assertRaises(RuntimeError):
+            validate_existing_asset(self.root/part['name'],{'state':'uploaded','size':part['bytes']})
+    def test_existing_verified_content_accepted(self):
+        part=self.manifest['parts'][0]
+        validate_existing_asset(self.root/part['name'],{'state':'uploaded','size':part['bytes'],'digest':'sha256:'+part['sha256']})
 
 if __name__=='__main__':unittest.main()

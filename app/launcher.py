@@ -95,7 +95,7 @@ def main():
         return
     try:
         with log.open('a', encoding='utf-8') as stream:
-            process = subprocess.Popen([str(runtime), '-B', str(ROOT / 'server.py'), '--port', str(port), '--no-open'], cwd=ROOT,
+            process = subprocess.Popen([str(runtime), '-I', '-X', 'utf8', '-B', str(ROOT / 'server.py'), '--port', str(port), '--no-open'], cwd=ROOT,
                              stdout=stream, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
     except OSError:
         messagebox.showerror('无法启动', '运行环境无法启动或目录不可写。请运行“环境检查”，确认完整解压。已有内容未删除。')

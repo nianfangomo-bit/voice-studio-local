@@ -71,6 +71,11 @@ def main():
     files += [(p,'licenses/'+p.name) for p in sorted((release/'licenses').glob('*.txt'))]
     files += [(p,'third-party-sources/'+p.name) for p in sorted((root/'third-party-sources').glob('*')) if p.is_file()]
     files += [(release/'docs/cover.png','项目封面.png')]
+    for directory in ('clean-build-records','runtime-notices'):
+        base=release/'packaging'/directory
+        if base.is_dir():
+            files += [(p,'build-records/'+directory+'/'+p.relative_to(base).as_posix())
+                      for p in sorted(base.rglob('*')) if p.is_file() and not p.is_symlink()]
     notices = root/'OFFLINE-THIRD-PARTY.md'
     if notices.is_file(): files.append((notices,'第三方组件说明.md'))
     files = [(p,n) for p,n in files if n!='engine/GPT_SoVITS/configs/tts_infer.yaml']

@@ -27,12 +27,20 @@ def inspect(deep=False):
         'tools/asr/models/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/model.pt']
     missing = [p for p in required if not (ROOT/'engine'/p).is_file()]
     record('训练、配音与中文转写文件', not missing, '完整' if not missing else '缺少：'+'；'.join(missing))
-    for module in ('tkinter','fastapi','uvicorn','numpy','soundfile','funasr','yaml','torch'):
+    # Engine utilities import Gradio even though the product uses its own UI.
+    # Check training/inference imports, not merely the HTTP server dependencies.
+    for module in ('tkinter','fastapi','uvicorn','numpy','soundfile','funasr','yaml','torch',
+                   'torchaudio','gradio','pandas','transformers','peft','pytorch_lightning',
+                   'onnxruntime','jieba_fast','split_lang'):
         try:
             loaded = importlib.import_module(module)
             record(module, True, getattr(loaded,'__version__','可加载'))
         except Exception as exc:
             record(module, False, str(exc)+'。请完整解压；如提示 DLL 缺失，检查系统运行库及显卡驱动。')
+    for resource in ('corpora/cmudict.zip','taggers/averaged_perceptron_tagger.zip'):
+        record('离线语言资源 '+resource,
+               (ROOT/'engine/runtime/nltk_data'/resource).is_file(),
+               '必须随包提供，不能依赖首次启动联网下载')
     torch = sys.modules.get('torch')
     if torch:
         try:

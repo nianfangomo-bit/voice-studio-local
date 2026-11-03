@@ -1,0 +1,2 @@
+# Preserve downloaded notice/source bytes so recorded SHA-256 values stay valid.
+packaging/runtime-notices/** -text

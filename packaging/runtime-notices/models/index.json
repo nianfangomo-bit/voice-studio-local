@@ -1,0 +1,92 @@
+[
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md",
+    "scope": "Model card; converted runtime weights are verified against lj1995/GPT-SoVITS, not asserted identical to original author weights."
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "s1v3.ckpt",
+    "sha256": "87133414860ea14ff6620c483a3db5ed07b44be42e2c3fcdad65523a729a745a",
+    "upstream_sha256": "87133414860ea14ff6620c483a3db5ed07b44be42e2c3fcdad65523a729a745a",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "sv/pretrained_eres2netv2w24s4ep4.ckpt",
+    "sha256": "4f5a0bf73c61eb41b174e1bb54e7ee3c83233892be8e0af1f187024e8e581a35",
+    "upstream_sha256": "4f5a0bf73c61eb41b174e1bb54e7ee3c83233892be8e0af1f187024e8e581a35",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "v2Pro/s2Gv2Pro.pth",
+    "sha256": "0f8ead815234365edf045c6d86370ed6e4f440e8195be77ff0ea72684ad406a5",
+    "upstream_sha256": "0f8ead815234365edf045c6d86370ed6e4f440e8195be77ff0ea72684ad406a5",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "v2Pro/s2Dv2Pro.pth",
+    "sha256": "257a7f36ae49e9ff08790d2cd3d398592530852caba810197f8606e884a52c54",
+    "upstream_sha256": "257a7f36ae49e9ff08790d2cd3d398592530852caba810197f8606e884a52c54",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "chinese-hubert-base/pytorch_model.bin",
+    "sha256": "24164f129c66499d1346e2aa55f183250c223161ec2770c0da3d3b08cf432d3c",
+    "upstream_sha256": "24164f129c66499d1346e2aa55f183250c223161ec2770c0da3d3b08cf432d3c",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "lj1995/GPT-SoVITS",
+    "commit": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "file": "chinese-roberta-wwm-ext-large/pytorch_model.bin",
+    "sha256": "e53a693acc59ace251d143d068096ae0d7b79e4b1b503fa84c9dcf576448c1d8",
+    "upstream_sha256": "e53a693acc59ace251d143d068096ae0d7b79e4b1b503fa84c9dcf576448c1d8",
+    "matches": true,
+    "card_url": "https://huggingface.co/lj1995/GPT-SoVITS/raw/8f8857563c040d542de108a2c18b0425abd6c9c5/README.md"
+  },
+  {
+    "repo": "TencentGameMate/chinese-hubert-base",
+    "commit": "fce0375452b1dd6c080ac3248d423d4d037bc831",
+    "card_url": "https://huggingface.co/TencentGameMate/chinese-hubert-base/raw/fce0375452b1dd6c080ac3248d423d4d037bc831/README.md",
+    "scope": "Model card; converted runtime weights are verified against lj1995/GPT-SoVITS, not asserted identical to original author weights."
+  },
+  {
+    "repo": "hfl/chinese-roberta-wwm-ext-large",
+    "commit": "a25cc9e05974bd9687e528edd516f2cfdb3f5db9",
+    "card_url": "https://huggingface.co/hfl/chinese-roberta-wwm-ext-large/raw/a25cc9e05974bd9687e528edd516f2cfdb3f5db9/README.md",
+    "scope": "Model card; converted runtime weights are verified against lj1995/GPT-SoVITS, not asserted identical to original author weights."
+  },
+  {
+    "file": "fasttext-language-model-source.html",
+    "source_url": "https://fasttext.cc/docs/en/language-identification.html",
+    "sha256": "e5e269a166d7e5baded34198138b437983a704844add508ace7cf0b40f3f6bd0",
+    "scope": "upstream notice, not model hash verification"
+  },
+  {
+    "file": "CC-BY-SA-3.0.html",
+    "source_url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode.en",
+    "sha256": "c33d7ebdbcc5c8db073e69a794b2ac44805f5d7d9edcfb8b5181a71869a9b7d5",
+    "scope": "upstream notice, not model hash verification"
+  },
+  {
+    "file": "g2pW-LICENCE.txt",
+    "source_url": "https://raw.githubusercontent.com/GitYCC/g2pW/master/LICENCE",
+    "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+    "scope": "upstream notice, not model hash verification"
+  }
+]

@@ -1,6 +1,6 @@
 param([string]$Destination = (Join-Path $PSScriptRoot 'VoiceStudio-1.0.1-download'))
 $ErrorActionPreference = 'Stop'
-$tag = 'v1.0.1'
+$tag = 'v1.0.1-offline.1'
 $base = 'https://github.com/nianfangomo-bit/voice-studio-local/releases/download/' + $tag + '/'
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 function Receive-File([string]$Name, [string]$Hash = '') {
@@ -24,11 +24,17 @@ $checks = @{}
 foreach ($line in (Get-Content -LiteralPath (Join-Path $Destination 'SHA256SUMS.txt'))) {
     if ($line -match '^([a-fA-F0-9]{64})\s+(.+)$') { $checks[$matches[2]]=$matches[1] }
 }
-foreach ($name in @('offline-package.json','VoiceStudio-Offline-Setup.exe','INSTALL.txt')) {
+foreach ($name in @('offline-package.json','VoiceStudio-Offline-Setup.exe','安装说明.txt')) {
     if (!$checks.ContainsKey($name)) { throw "校验清单缺少 $name" }
     Receive-File $name $checks[$name]
 }
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $Destination 'offline-package.json') | ConvertFrom-Json
-if ($manifest.version -ne '1.0.1') { throw '版本不匹配' }
-foreach ($part in $manifest.parts) { Receive-File $part.name $part.sha256 }
+if ($manifest.version -ne '1.0.1' -or $manifest.folder -ne 'VoiceStudio-1.0.1-win64-offline') { throw '版本不匹配' }
+$partNumber = 1
+foreach ($part in $manifest.parts) {
+    $expectedName = 'VoiceStudio-1.0.1-win64-offline.zip.part{0:D3}' -f $partNumber
+    if ($part.name -ne $expectedName -or $part.sha256 -notmatch '^[a-fA-F0-9]{64}$') { throw '分卷清单不完整或顺序错误' }
+    Receive-File $part.name $part.sha256
+    $partNumber++
+}
 Write-Host "下载并校验完成。打开 $Destination，双击 VoiceStudio-Offline-Setup.exe。安装和后续使用不需要联网。"

@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-04",
+  "version": "1.0.1",
+  "release_tag": "v1.0.1-offline.1",
+  "functional_acceptance": "passed",
+  "archive_sha256": "8fb5d4c95d1369a3bf85627132d1d40d3ba9a8166c20244a13517971407a7083",
+  "archive_bytes": 6466986099,
+  "unpacked_bytes": 9983936706,
+  "parts": 25,
+  "installer_exit_code_observed": 0,
+  "full_file_check": {
+    "result": "passed",
+    "files": 38278,
+    "method": "installed offline_check.py --deep, exit 0 observed"
+  },
+  "first_start": {
+    "first_run_auto_configuration": true,
+    "authenticated_reopen": true,
+    "manual_configuration_required": false,
+    "scope": "Installed app files, empty isolated data, engine junction to tested installation"
+  },
+  "preparation": "passed",
+  "training": {
+    "state": "done",
+    "gpt_epochs": 1,
+    "sovits_epochs": 1,
+    "material_seconds": 14.03
+  },
+  "new_text_generation": {
+    "state": "done",
+    "seconds": 5.5,
+    "subtitle_segments": 2
+  },
+  "asr_matches_ignoring_punctuation": true,
+  "reuse_model_hashes_unchanged": true,
+  "partial_regeneration": {
+    "state": "done",
+    "generated_segments": 1,
+    "untouched_audio_hash_unchanged": true,
+    "old_audio_retained": true,
+    "old_second_start_ms": 2480,
+    "new_second_start_ms": 7000,
+    "duration_ms": 10020,
+    "cached_full_generation_segments": 0
+  },
+  "tested_gpu": "RTX 3080",
+  "other_clean_windows_pc": "not_tested",
+  "human_voice_quality_review": "not_completed",
+  "subtitle_precision": "sentence",
+  "runtime": "Python 3.9.13 / torch 2.0.0+cu118 / torchaudio 2.0.1+cu118",
+  "limitations": [
+    "Unsigned installer",
+    "No independent security audit",
+    "Dependencies pinned for compatibility, not a promise of latest security patches",
+    "Short minimum training demonstrates workflow, not voice quality",
+    "Final GitHub download verification is recorded separately"
+  ]
+}

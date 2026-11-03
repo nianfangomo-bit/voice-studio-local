@@ -11,13 +11,19 @@
 
 ## 运行环境
 
+2026-11-03 的干净重建使用官方 Python 3.9.13，在独立目录重新安装锁定依赖，没有复制旧 site-packages。完整安装版本表、测试范围和补充许可证收录在 `build-records/clean-build-records` 与 `build-records/runtime-notices`。后者也保留部分同版本源码归档及材料来源摘要。部分补充通知取自记录的后续上游提交，索引明确标注，不能误称为逐文件法律审计。
+
+`torch-complex 0.4.3` 的上游元数据 `License` 字段为 UNKNOWN，但分类字段明确声明 Apache Software License。补充材料保留该精确元数据与标准 Apache 2.0 全文，不把通用许可文本冒充其原仓库的 LICENSE 文件。FunASR 已安装源码的 MIT 版权头保留，补充上游通知的提交也单独记录。
+
+`lid.176.bin` 是 fastText 的语言识别模型，来自 Facebook/fastText 项目，按 CC BY-SA 3.0 分发，不是应用 MIT 许可的一部分。本包保留原模型，不修改权重；来源 https://fasttext.cc/docs/en/language-identification.html ，许可 https://creativecommons.org/licenses/by-sa/3.0/ 。模型作者引用：Armand Joulin、Edouard Grave、Piotr Bojanowski、Tomas Mikolov，Bag of Tricks for Efficient Text Classification（2016）。再分发或修改该资产时须遵守其署名和相同方式共享条款。
+
 Python、PyTorch、NVIDIA CUDA 运行库及其他 Python 软件包的版权许可保留在 `engine/runtime/LICENSE.txt`、各 `*.dist-info` 的 LICENSE / licenses / METADATA，以及库内原有授权文件中。React 等前端许可见根目录 `licenses` 和页面脚本保留的注释。
 
 通过 `--audio-tools` 构建的新版候选包使用统一 FFmpeg/ffprobe 音频工具，源码提交为 `fbb9368226d693c99d9b0aee672c59ed1a36785b`。构建禁用 GPL、nonfree、外部库自动探测和网络协议，适用 LGPL 2.1 或以后版本；本软件通过独立进程调用。对应的完整 FFmpeg 源码、许可证、构建脚本、配置与日志随包保存于 `third-party-sources/audio-tools`。官方入口：https://ffmpeg.org/ 。没有使用 `--audio-tools` 的旧候选包不适用本段新构建说明，不作为本次正式发行资产。
 
 构建选择记录于 `build-choices.json`。使用 `--trim-unused` 时会排除未用于本工作台中文 Paraformer 流程的 Faster-Whisper、CTranslate2、PyAV（含其附带媒体库）及 PySimpleGUI；不修改用户原环境。排除后的完整包仍须完成真实训练与配音复测。其余运行时许可证保留；组件清单仅记录来源与材料，不代表自动法律认证。
 
-2026-11-03 起的构建规则另排除旧 `LangSegment` 和韩语分析组件 `eunjeon`。当前中文推理入口使用引擎内的 `text.LangSegmenter`，不是旧 `LangSegment` 包；本工作台不提供韩语配音。不得把此精简包宣传为完整支持官方所有多语言功能的整合环境。此变更目前仅通过核心模块隔离导入检查，重新打包后的完整流程仍须复测，不能套用此前候选包的通过记录。若排除项与保留包共享文件，构建会停止，不擅自删除共享依赖。
+干净重建环境不安装旧 `LangSegment` 和韩语分析组件 `eunjeon`。当前中文推理入口使用引擎内的 `text.LangSegmenter`，不是旧 `LangSegment` 包；本工作台不提供韩语配音。不得把此精简包宣传为完整支持官方所有多语言功能的整合环境。新环境的真实转写、各一轮训练、配音、声线复用与单句重做已通过；最终安装包必须另行验收。FunASR 声明依赖的 Whisper 等包仍按依赖关系安装，不因为本产品不直接使用就随意删除。
 
 ## 素材与用途
 

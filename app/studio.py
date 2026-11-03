@@ -340,9 +340,12 @@ class Studio:
             if training_job or preparation_job or request['segments']:
                 runtime = require_file(request['settings']['runtime'])
                 with (folder / 'worker.log').open('w', encoding='utf-8') as log:
-                    env = dict(os.environ, PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
+                    env = dict(os.environ, PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1',
+                               HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
+                               HF_HUB_DISABLE_TELEMETRY='1', GRADIO_ANALYTICS_ENABLED='False',
+                               DO_NOT_TRACK='1')
                     worker_name = 'preparation_worker.py' if preparation_job else 'training_worker.py' if training_job else 'inference_worker.py'
-                    proc = subprocess.Popen([str(runtime), '-B', str(ROOT / worker_name), str(folder / 'request.json')],
+                    proc = subprocess.Popen([str(runtime), '-I', '-X', 'utf8', '-B', str(ROOT / worker_name), str(folder / 'request.json')],
                         stdout=log, stderr=subprocess.STDOUT, env=env, creationflags=HIDDEN)
                     while proc.poll() is None:
                         self.ingest(j, folder)

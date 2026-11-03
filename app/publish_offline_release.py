@@ -51,6 +51,16 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise RuntimeError('Unexpected GitHub redirect; refusing to forward authentication')
 
 
+def validate_existing_asset(path, asset):
+    if asset.get('state')!='uploaded' or asset.get('size')!=path.stat().st_size:
+        raise RuntimeError('Existing asset is incomplete or has a different size: '+path.name)
+    digest=hashlib.sha256()
+    with path.open('rb') as source:
+        for chunk in iter(lambda:source.read(4*1024**2),b''):digest.update(chunk)
+    if asset.get('digest')!='sha256:'+digest.hexdigest():
+        raise RuntimeError('Existing asset content is different or unverified; refusing to mix release builds: '+path.name)
+
+
 class ProgressFile:
     def __init__(self,path):
         self.path=path;self.stream=path.open('rb');self.size=path.stat().st_size;self.done=0;self.last=0
@@ -68,12 +78,15 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('directory',type=Path)
     parser.add_argument('--commit',required=True)
+    parser.add_argument('--release-tag',help='Optional prerelease tag for this exact version; avoids mixing old drafts')
     parser.add_argument('--asset',action='append',help='Upload only named package assets; repeat for selected files')
     parser.add_argument('--retry-incomplete',action='store_true',help='Replace only selected unfinished assets from a failed upload')
     args=parser.parse_args()
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
     validate_package(args.directory,manifest)
-    TAG='v'+manifest['version']
+    TAG=args.release_tag or 'v'+manifest['version']
+    if not re.fullmatch('v'+re.escape(manifest['version'])+r'(?:-[0-9A-Za-z][0-9A-Za-z.\-]*)?',TAG):
+        raise ValueError('Release tag must match the package version')
     env=dict(os.environ,GIT_TERMINAL_PROMPT='0',GCM_INTERACTIVE='Never')
     credential=subprocess.run(['git','-c','credential.interactive=never','credential','fill'],
         input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,env=env,check=True)
@@ -109,6 +122,8 @@ def main():
         'id':release['id'],'url':release['html_url'],'draft':release['draft'],'tag':TAG},ensure_ascii=False,indent=2),encoding='utf-8')
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
     names=['VoiceStudio-Offline-Setup.exe','offline-package.json','SHA256SUMS.txt','安装说明.txt']+[p['name'] for p in manifest['parts']]
+    for optional in ('DownloadOffline.ps1','验收结果.json'):
+        if (args.directory/optional).is_file():names.append(optional)
     if args.asset:
         if any(name not in names for name in args.asset): raise ValueError('Unknown package asset')
         names=args.asset
@@ -123,12 +138,13 @@ def main():
                 request('/repos/'+REPO+'/releases/assets/'+str(existing[name]['id']),'DELETE')
                 del existing[name]
         if name in existing:
-            if existing[name]['size']!=path.stat().st_size:raise RuntimeError('Existing asset size differs: '+name)
+            validate_existing_asset(path,existing[name])
             print('Already uploaded: '+name,flush=True);uploaded.append(existing[name]);continue
         source=ProgressFile(path)
         try:
             url=release['upload_url'].split('{',1)[0]+'?name='+urllib.parse.quote(name)
             asset=request(url,'POST',source,'application/octet-stream',path.stat().st_size)
+            validate_existing_asset(path,asset)
         finally:source.close()
         uploaded.append(asset)
         print(json.dumps({'asset_uploaded':name,'bytes':asset['size']}),flush=True)

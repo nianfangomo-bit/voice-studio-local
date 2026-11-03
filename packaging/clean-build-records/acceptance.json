@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-03",
+  "scope": "Clean Python copied into an isolated app; NOT final installer acceptance",
+  "python": "3.9.13",
+  "gpu": "NVIDIA GeForce RTX 3080",
+  "unit_tests_passed": 43,
+  "preparation": "passed",
+  "training": {
+    "gpt_epochs": 1,
+    "sovits_epochs": 1,
+    "recording_seconds": 14.03,
+    "result": "passed"
+  },
+  "unseen_text": {
+    "seconds": 5.5,
+    "sentence_subtitles": 2,
+    "result": "passed"
+  },
+  "asr_matches": true,
+  "reuse": {
+    "state": "done",
+    "model_hashes_unchanged": true
+  },
+  "partial_regeneration": {
+    "state": "done",
+    "generated_segments": 1,
+    "untouched_audio_hash_unchanged": true,
+    "old_audio_retained": true,
+    "old_second_start_ms": 2480,
+    "new_second_start_ms": 7000,
+    "duration_ms": 10020,
+    "cached_full_generation_segments": 0
+  },
+  "listening_review": "pending",
+  "final_installer": "pending",
+  "other_windows_pc": "not_tested",
+  "first_attempt_failure": "Missing Gradio transitive engine import; added gradio==4.44.1 and reran successfully",
+  "original_engine_configs_unchanged": true
+}

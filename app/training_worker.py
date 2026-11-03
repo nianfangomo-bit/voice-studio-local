@@ -81,7 +81,7 @@ def main(request_path):
             progress(stage)
             print('\nSTAGE: ' + stage, flush=True)
             with (folder / ('stage-' + str(completed + 1) + '.log')).open('w', encoding='utf-8') as stage_log:
-                child = subprocess.run([s['runtime'], '-X', 'utf8', '-B', str(ROOT / 'engine_entry.py'), str(engine), script, *args],
+                child = subprocess.run([s['runtime'], '-I', '-X', 'utf8', '-B', str(ROOT / 'engine_entry.py'), str(engine), script, *args],
                            cwd=str(sandbox), env=env, stdout=stage_log, stderr=subprocess.STDOUT, creationflags=HIDDEN)
             if child.returncode != 0:
                 detail = (folder / ('stage-' + str(completed + 1) + '.log')).read_text(encoding='utf-8', errors='replace')
