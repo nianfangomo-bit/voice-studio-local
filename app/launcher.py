@@ -6,6 +6,7 @@ import webbrowser
 import urllib.request
 import urllib.parse
 import socket
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
@@ -14,23 +15,50 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def existing_session():
+    """Only authenticate locally; never forward the startup secret to a proxy."""
+    try:
+        session = json.loads((ROOT / 'data/session.json').read_text(encoding='utf-8'))
+        url = urllib.parse.urlparse(session['url'])
+        if url.scheme != 'http' or url.hostname != '127.0.0.1' or not url.port or not url.fragment:
+            return None
+        origin = f'http://127.0.0.1:{url.port}'
+        req = urllib.request.Request(origin + '/connect', data=b'',
+            headers={'Origin': origin, 'x-start-token': url.fragment}, method='POST')
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+        with opener.open(req, timeout=1) as response:
+            if response.status == 200:
+                return session['url']
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return None
+
+
+def wait_for_service(process, timeout=30):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        url = existing_session()
+        if url:
+            return url, None
+        if process.poll() is not None:
+            return None, '启动进程已退出。请运行“环境检查”，确认文件完整、磁盘可写和运行库正常。已有录音、声线和作品保留。'
+        time.sleep(.3)
+    return None, '工作台尚未就绪，可能仍在加载。请稍后重新双击启动；不要重复安装。已有内容保留。'
+
+
 def main():
     root = tk.Tk()
     root.withdraw()
     # Reopen the existing authenticated session instead of starting a second service.
-    try:
-        session = json.loads((ROOT / 'data/session.json').read_text(encoding='utf-8'))
-        url = urllib.parse.urlparse(session['url'])
-        if url.scheme == 'http' and url.hostname == '127.0.0.1':
-            origin = f'http://127.0.0.1:{url.port}'
-            req = urllib.request.Request(origin + '/connect', data=b'',
-                headers={'Origin': origin, 'x-start-token': url.fragment}, method='POST')
-            with urllib.request.urlopen(req, timeout=2) as response:
-                if response.status == 200:
-                    webbrowser.open(session['url'])
-                    return
-    except (OSError, ValueError, KeyError):
-        pass
+    url = existing_session()
+    if url:
+        webbrowser.open(url)
+        return
     bootstrap = ROOT / 'data' / 'bootstrap.json'
     bundled = ROOT / 'engine' / 'runtime' / 'python.exe'
     if bundled.is_file():
@@ -65,10 +93,18 @@ def main():
     if port is None:
         messagebox.showerror('无法启动', '本机可用端口不足。请关闭其他工作台实例后重试，已有成果未改动。')
         return
-    with log.open('a', encoding='utf-8') as stream:
-        subprocess.Popen([str(runtime), '-B', str(ROOT / 'server.py'), '--port', str(port)], cwd=ROOT,
-                         stdout=stream, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
-    messagebox.showinfo('声线工作室', '正在打开本机工作台。\n如果页面没有打开，请检查 data/server.log。\n关闭浏览器不会停止正在运行的任务。')
+    try:
+        with log.open('a', encoding='utf-8') as stream:
+            process = subprocess.Popen([str(runtime), '-B', str(ROOT / 'server.py'), '--port', str(port), '--no-open'], cwd=ROOT,
+                             stdout=stream, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
+    except OSError:
+        messagebox.showerror('无法启动', '运行环境无法启动或目录不可写。请运行“环境检查”，确认完整解压。已有内容未删除。')
+        return
+    url, error = wait_for_service(process)
+    if url:
+        webbrowser.open(url)
+    else:
+        messagebox.showerror('工作台未就绪', error + '\n诊断日志：' + str(log))
 
 
 if __name__ == '__main__':
