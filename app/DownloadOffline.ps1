@@ -24,7 +24,7 @@ $checks = @{}
 foreach ($line in (Get-Content -LiteralPath (Join-Path $Destination 'SHA256SUMS.txt'))) {
     if ($line -match '^([a-fA-F0-9]{64})\s+(.+)$') { $checks[$matches[2]]=$matches[1] }
 }
-foreach ($name in @('offline-package.json','VoiceStudio-Offline-Setup.exe','安装说明.txt')) {
+foreach ($name in @('offline-package.json','VoiceStudio-Offline-Setup.exe','INSTALL.txt')) {
     if (!$checks.ContainsKey($name)) { throw "校验清单缺少 $name" }
     Receive-File $name $checks[$name]
 }

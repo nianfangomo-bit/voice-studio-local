@@ -42,7 +42,7 @@ def validate_package(directory, manifest):
             raise ValueError('Part checksum mismatch: '+part['name'])
     if whole.hexdigest()!=manifest.get('archive_sha256'):
         raise ValueError('Archive checksum mismatch')
-    for name in ('VoiceStudio-Offline-Setup.exe','SHA256SUMS.txt','安装说明.txt'):
+    for name in ('VoiceStudio-Offline-Setup.exe','SHA256SUMS.txt','INSTALL.txt'):
         if not (directory/name).is_file():raise ValueError('Missing release file: '+name)
 
 
@@ -121,8 +121,8 @@ def main():
     (args.directory/'github-release-record.json').write_text(json.dumps({
         'id':release['id'],'url':release['html_url'],'draft':release['draft'],'tag':TAG},ensure_ascii=False,indent=2),encoding='utf-8')
     manifest=json.loads((args.directory/'offline-package.json').read_text(encoding='utf-8'))
-    names=['VoiceStudio-Offline-Setup.exe','offline-package.json','SHA256SUMS.txt','安装说明.txt']+[p['name'] for p in manifest['parts']]
-    for optional in ('DownloadOffline.ps1','验收结果.json'):
+    names=['VoiceStudio-Offline-Setup.exe','offline-package.json','SHA256SUMS.txt','INSTALL.txt']+[p['name'] for p in manifest['parts']]
+    for optional in ('DownloadOffline.ps1','ACCEPTANCE.json'):
         if (args.directory/optional).is_file():names.append(optional)
     if args.asset:
         if any(name not in names for name in args.asset): raise ValueError('Unknown package asset')

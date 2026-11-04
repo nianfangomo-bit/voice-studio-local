@@ -15,7 +15,7 @@ class ReleaseValidationTests(unittest.TestCase):
         (self.root/name).write_bytes(raw)
         self.manifest={'version':'1.0.1','folder':folder,'archive_sha256':digest,
                        'parts':[{'name':name,'bytes':len(raw),'sha256':digest}]}
-        for name in ('VoiceStudio-Offline-Setup.exe','SHA256SUMS.txt','安装说明.txt'):
+        for name in ('VoiceStudio-Offline-Setup.exe','SHA256SUMS.txt','INSTALL.txt'):
             (self.root/name).write_text('fixture',encoding='utf-8')
     def tearDown(self):self.temp.cleanup()
     def test_complete(self):validate_package(self.root,self.manifest)
@@ -29,7 +29,7 @@ class ReleaseValidationTests(unittest.TestCase):
         m=copy.deepcopy(self.manifest);m['archive_sha256']='0'*64
         with self.assertRaises(ValueError):validate_package(self.root,m)
     def test_missing_instructions(self):
-        (self.root/'安装说明.txt').unlink()
+        (self.root/'INSTALL.txt').unlink()
         with self.assertRaises(ValueError):validate_package(self.root,self.manifest)
     def test_existing_same_size_wrong_content_rejected(self):
         part=self.manifest['parts'][0];path=self.root/part['name']
