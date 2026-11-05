@@ -10,11 +10,13 @@ import server
 
 
 class StartupSafetyTests(unittest.TestCase):
+    # 中文维护：确认重开启动器不会把正在运行的任务误标为中断。
     def test_launcher_does_not_recover_database(self):
         tree=ast.parse((Path(server.__file__).parent/'launcher.py').read_text(encoding='utf-8'))
         calls=[n.func.id for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name)]
         self.assertNotIn('Studio',calls)
 
+    # 中文维护：确认第二服务实例在碰触数据库前退出。
     @unittest.skipUnless(os.name=='nt','Windows service lock')
     def test_busy_service_exits_before_opening_database(self):
         with tempfile.TemporaryDirectory() as temp:

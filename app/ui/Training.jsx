@@ -1,5 +1,6 @@
 import React,{useState,useEffect} from 'react';
 
+// 训练向导只展示真实素材和任务状态；计划变化后必须重新确认训练。
 export function Training({state,api,act,pending}) {
   const [selected,choose]=useState(''),[report,setReport]=useState(null),[confirmed,confirm]=useState(false);
   const datasets=state.datasets||[];
@@ -7,6 +8,7 @@ export function Training({state,api,act,pending}) {
   const busy=ds&&state.jobs.some(j=>j.project_id===ds.id&&['queued','running','cancelling'].includes(j.state));
   const reviewed=ds?.rows.filter(r=>r.reviewed&&!r.excluded).length||0;
   const included=ds?.rows.filter(r=>!r.excluded).length||0;
+  // 校对或参数变更使旧训练计划失效，防止使用过期修订号直接训练。
   const update=(data)=>act(async()=>{setReport(null);confirm(false);return api(`datasets/${ds.id}`,data)},'已保存校对；原录音与原标注未改动。');
   return <><section className="intro"><h2>训练一次，之后直接选用。</h2><p>① 选择录音 → ② 自动切分转写 → ③ 试听校对 → ④ 确认训练 → ⑤ 保存声线</p></section>
     <p className="lead">原始录音会另存保留；自动转写不等于正确标注。请先校对再训练，声线满意后可反复使用。</p>
@@ -28,10 +30,13 @@ export function Training({state,api,act,pending}) {
       </section></>}
   </>
 }
+// 显示保守试训起点及范围限制；保存后必须重新检查训练计划。
 function TrainingParams({value,disabled,save}){return <form className="panel" onSubmit={e=>{e.preventDefault();save(Object.fromEntries(new FormData(e.currentTarget)))}}><h2>基础参数已预填</h2><p>针对短素材的保守试训起点，显卡编号固定为 0；训练轮数越多不一定越好。</p><div className="toolbar">{[['gpt_epochs','GPT 轮数',20],['sovits_epochs','SoVITS 轮数',20],['batch_size','批大小',4]].map(([key,label,max])=><label className="field" key={key}><span>{label}</span><input type="number" name={key} min="1" max={max} defaultValue={value[key]} required disabled={disabled}/></label>)}<button disabled={disabled}>保存参数</button></div><small>每次训练创建独立模型版本，不覆盖旧声线。后续配音直接加载已发布模型，无需重新训练。</small></form>}
+// 展示和保存单段人工校对，机器转写一致不等同于人工试听确认。
 function ReviewRow({row:r,index,did,disabled,save}) {
   const machine=r.review_method==='secondary_asr_agreement';
   const [text,T]=useState(r.text),[reviewed,R]=useState(r.reviewed&&!machine),[excluded,E]=useState(r.excluded);
+  // 素材修订同步到本地表单；改变文字时由输入回调取消旧的人工确认。
   useEffect(()=>{T(r.text);R(r.reviewed&&!machine);E(r.excluded)},[r.id,r.text,r.reviewed,r.excluded]);
   return <section className="panel"><div className="toolbar"><h3>片段 {index+1} · {r.seconds} 秒</h3><span className="badge">{r.excluded?'已排除':machine?'机器交叉核验一致（未人工试听）':r.reviewed?'已校对':'待校对'}</span></div>
     <audio controls preload="none" src={`/api/datasets/${did}/audio/${r.id}`}/>
@@ -43,6 +48,7 @@ function ReviewRow({row:r,index,did,disabled,save}) {
   </section>
 }
 
+// 顺序上传用户选择的录音并显示实际文件进度；失败保留已成功上传项。
 function RecordingImport({api,act,pending,choose}) {
   const [files,setFiles]=useState([]),[status,setStatus]=useState('');
   return <details className="panel" open><summary>＋ 用自己的录音创建声线</summary><form onSubmit={e=>{

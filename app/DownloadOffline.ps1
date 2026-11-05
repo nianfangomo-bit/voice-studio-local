@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $tag = 'v1.0.1-offline.1'
 $base = 'https://github.com/nianfangomo-bit/voice-studio-local/releases/download/' + $tag + '/'
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+# 校验已有文件后复用；下载先落临时文件并有限重试，摘要通过才提交为正式文件。
 function Receive-File([string]$Name, [string]$Hash = '') {
     if ([IO.Path]::GetFileName($Name) -ne $Name) { throw '下载文件名无效' }
     $target = Join-Path $Destination $Name

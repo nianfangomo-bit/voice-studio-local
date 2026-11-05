@@ -1,5 +1,5 @@
 """Produce a metadata inventory, not an automatic legal-compliance verdict."""
-import argparse,email,json,hashlib,csv
+import argparse,email,json,csv
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('runtime',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
 packages=[]

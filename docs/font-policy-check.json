@@ -1,0 +1,243 @@
+{
+  "version": "1.0.2-rc.1",
+  "matplotlib": "3.6.2",
+  "excluded_files": [
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmex10.afm",
+      "bytes": 12290,
+      "sha256": "cdd0edb72caa43a01ae403155a8c2935680492c4d7e4a50016a52314c4c18947"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmmi10.afm",
+      "bytes": 10742,
+      "sha256": "742abe4160bd565e1699c0fd20e8be08c301faf9958fc5414ce252db4383302d"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmr10.afm",
+      "bytes": 10444,
+      "sha256": "6c66fa5c04be1f8f2f87ebe6beb17494cba73f573e446341dd4ce6d409bdbdec"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmsy10.afm",
+      "bytes": 8490,
+      "sha256": "971851d028dc4d5c4ab10e063def32a42e0375809b9f98f821796ad904c07033"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmtt10.afm",
+      "bytes": 6657,
+      "sha256": "905cc1434597d06641b2cd2397f328809ed9bc408213c3272e95f9f081515055"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagd8a.afm",
+      "bytes": 17759,
+      "sha256": "ffef35f8ae0819c9c45d998eaa420cc8be3680145cc4c12e93c37ca270ed2c83"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagdo8a.afm",
+      "bytes": 17831,
+      "sha256": "1abb1b4623787eea0f2be4a268c9e09e68b92b2642fe73857ff2d8164fcbbb18"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagk8a.afm",
+      "bytes": 17814,
+      "sha256": "163cfe394cc4f6a07e302a2c0ee52b06732af015e695dc7a8ffce08f698a7359"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagko8a.afm",
+      "bytes": 17919,
+      "sha256": "a52ef5e9a970eb2b666184919f3ea13ef6f50593e5ab76948958891586a0b079"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkd8a.afm",
+      "bytes": 15572,
+      "sha256": "58e256e619c49f0050190b15c6d7572363c9d66f2ac05fb10b89fa683dfe8512"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkdi8a.afm",
+      "bytes": 15695,
+      "sha256": "e83d9246171873e6a9abf42aeb66e3fc5c14fee1f120ad3d4edff08d24894bb7"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkl8a.afm",
+      "bytes": 15407,
+      "sha256": "fd926e1412a8cfbd04f92065846e136fd62ac66dc8e83fa300ba72f91faf71ec"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkli8a.afm",
+      "bytes": 15591,
+      "sha256": "d7fe9be7960f0d793d6b74549cdbe36bbcb6891dcfe812a787a0ef90f9d9e690"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrb8a.afm",
+      "bytes": 15696,
+      "sha256": "e420c97b7b7bd5a339aa29c361213cb2f5a173a463b5e64f36c94ebcd569f0d0"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrbo8a.afm",
+      "bytes": 15766,
+      "sha256": "8cd7db6c11dfc2fbb4460971b8b7ae8752b5d0a584923d65115251fe15d04961"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrr8a.afm",
+      "bytes": 15683,
+      "sha256": "1f1e17f646ec466fd2ddea3d58b8ee390cee3a67991cedf76faba10d3b07d4d4"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrro8a.afm",
+      "bytes": 15787,
+      "sha256": "0cbac19b888ebe30a92819f20bbc8600ee1f748bd15023b4b95fe4422cbd55f4"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvb8a.afm",
+      "bytes": 17725,
+      "sha256": "3d1ff26ebd87571e9a397551cdaedafb6e7902d184c83c23fe90bfc4ad551f5a"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvb8an.afm",
+      "bytes": 17656,
+      "sha256": "a451dd8d1804a0ac719a57f53dc4dcfb71f2ce1d45cf3d977b603c2b34f726e0"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvbo8a.afm",
+      "bytes": 17800,
+      "sha256": "e2870c6e77d663177e621a736d63c34730dd7240512251073d97c03911626994"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvbo8an.afm",
+      "bytes": 17765,
+      "sha256": "70e01e8564146cb02d7e17168d381973c68bbcaa3f716a26d0976a98a0cfb13a"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvl8a.afm",
+      "bytes": 16072,
+      "sha256": "413a8953871556d6ef661a865c500c44dc99c6526d9aae8713a5086e1eaf2d81"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvlo8a.afm",
+      "bytes": 16174,
+      "sha256": "7c011dd86450cda9a79dd070e0045690934a2018265b6e09be8e306435153d18"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvr8a.afm",
+      "bytes": 18451,
+      "sha256": "ec6ea0364d74cec6ffc24436aa8bff4ae20cb6ca4d69f006a69150f55fbb166a"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvr8an.afm",
+      "bytes": 18393,
+      "sha256": "f530964604720a0a70a4a885f7c8f5d21abd9878dd1afd3d694f7a99c81fc769"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvro8a.afm",
+      "bytes": 18531,
+      "sha256": "f5e5d6f2db093bef22c3df0709df47eec21b1b97777d0fa2939f975d73249bef"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvro8an.afm",
+      "bytes": 18489,
+      "sha256": "460af853e80286031c594e55c853303e0da01970790fd0e1adbb58b566fb8d21"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncb8a.afm",
+      "bytes": 16500,
+      "sha256": "6407d847a8036684e33f0d57f4229700a85d199ce04a50df766c4520068d30fd"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncbi8a.afm",
+      "bytes": 18098,
+      "sha256": "87a8085a114a8776a250cb80e103c228ddfd8dad422560e76a0cfeacb2567890"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncr8a.afm",
+      "bytes": 17189,
+      "sha256": "c2aa61bffefea08103ac687342ca720de143d3b8f302ce6e6926cb9eb679dead"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncri8a.afm",
+      "bytes": 17456,
+      "sha256": "9976445aafa94e0b0e1bcfcdc79179d83305f1107add1cc054e9c7dd071158fa"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplb8a.afm",
+      "bytes": 16096,
+      "sha256": "61df0cfaa5c47a6c95b01b78398eef298aabed873f29f4676f6139d398a3dd3b"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplbi8a.afm",
+      "bytes": 16251,
+      "sha256": "04b45e5224923afa22693ca62bc870a96091da7757251d94d85014d982958603"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplr8a.afm",
+      "bytes": 16197,
+      "sha256": "39d33b9a9fbe1df1567e9f48c28946a2f8ae1e986801334597cf0e1b7877530f"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplri8a.afm",
+      "bytes": 16172,
+      "sha256": "9f4fefa3e242f2fa0ae85287be7642ca0cecbd37cd965411c9adcbd1db534596"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/psyr.afm",
+      "bytes": 9853,
+      "sha256": "1c8b6906a0a9a4629a2da2d47628d3677d63cd4575dd4544a2161550f4a4d4a7"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmb8a.afm",
+      "bytes": 18631,
+      "sha256": "b5df1520d0f0ffbfd7dd4e9d1cb70dc53fbfdb053f0aa6934a7b525baf7af8cf"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmbi8a.afm",
+      "bytes": 18718,
+      "sha256": "65b2b51f6f31c48c1c6464aa191ea256da4cad9d792d137539f54ba6dd72899f"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmr8a.afm",
+      "bytes": 18590,
+      "sha256": "9700e22c5f11909e3a468545634a8443d27f879e1c40717a302471dde84b1bf6"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmri8a.afm",
+      "bytes": 18716,
+      "sha256": "ad8373d3ce043ee0a075b65c22fb9a5c0efba33839b0e8261998f0a45cc318a4"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putb8a.afm",
+      "bytes": 22537,
+      "sha256": "449bae873afe772a1c28c5f8a600bd5282b722f7b66e75ad93be0ecb1ed904f9"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putbi8a.afm",
+      "bytes": 22948,
+      "sha256": "d60c909275eaa62566c8aadc46199e9d226b3f4928b7987ce07996b434372de8"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putr8a.afm",
+      "bytes": 23177,
+      "sha256": "63fbfded924a44f7cf236705b85b2d06d07145b01fdc02be84760356cc0cb5d0"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putri8a.afm",
+      "bytes": 22899,
+      "sha256": "1f1bb681256957ddf328ee9e72ab59489647432135c61c1c52787e449f1360fa"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pzcmi8a.afm",
+      "bytes": 16730,
+      "sha256": "061ccb72877cfa755dd8c59e66c3bf1a86545eca383a1424b486767bbb71258f"
+    },
+    {
+      "path": "runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pzdr.afm",
+      "bytes": 9689,
+      "sha256": "6bbf8d8124d21326a4b6cf3887e8572eb6d1af1985871aff351e756e138b6584"
+    }
+  ],
+  "excluded_count": 46,
+  "excluded_bytes": 758646,
+  "engine_spectrogram_function": "passed (isolated exact AST function, not training)",
+  "png_pdf_svg": "passed",
+  "fresh_font_cache": true,
+  "full_package_training": "not tested",
+  "other_computer": "not tested"
+}

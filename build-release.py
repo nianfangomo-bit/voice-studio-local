@@ -21,8 +21,13 @@ app_files.update({'preparation.py','preparation_worker.py','build_portable.py',
 app_files.update({'offline_check.py','环境检查.cmd','Start.cmd','OFFLINE-README.md',
                   'OFFLINE-THIRD-PARTY.md','package_offline.py','split_offline.py',
                   'OfflineSetup.cs','publish_offline_release.py','DownloadOffline.ps1'})
+# 源码交付保留维护回归测试；这些文件不进入运行时 APP_FILES 安装清单。
+app_files.update({'tests/test_maintenance_security.py', 'tests/test_launcher.py',
+                  'tests/test_release_validation.py', 'tests/test_startup_safety.py', 'tests/test_font_policy.py'})
 files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_files)]
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
+files.append(root/'docs/maintenance-inventory.json')
+files.append(root/'docs/font-policy-check.json')
 files.append(root/'docs/cover.png')
 files += sorted((root/'packaging').glob('*.py')) + sorted((root/'packaging').glob('*.sh'))
 files += sorted((root/'.github/workflows').glob('*.yml'))

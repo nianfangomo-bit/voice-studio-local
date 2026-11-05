@@ -4,7 +4,6 @@ Explicitly omits user weights, recordings, history and personalized inference co
 Use --copy only after inspecting --engine inventory; never merges into existing output.
 """
 import argparse
-import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -18,6 +17,15 @@ MODEL_PATHS = ['chinese-hubert-base','chinese-roberta-wwm-ext-large','fast_langd
 SKIP_PARTS = {'__pycache__','.git','.cache','._____temp','.pytest_cache'}
 
 
+# 只排除许可链未确认的旧 PS 度量文件，保留 PDF 核心度量、TTF 和全部许可证。
+def excluded_legacy_afm(relative):
+    path = Path(relative)
+    return (path.parent.as_posix().lower() ==
+            'runtime/lib/site-packages/matplotlib/mpl-data/fonts/afm'
+            and path.suffix.lower() == '.afm')
+
+
+# 中文维护：按允许目录收集引擎文件，排除缓存、私有配置和非目标基础权重。
 def inventory(engine):
     roots = [engine/'runtime', engine/'config.py', engine/'LICENSE', engine/'GPT_SoVITS',
              engine/'tools/__init__.py', engine/'tools/my_utils.py', engine/'tools/i18n',
@@ -30,6 +38,7 @@ def inventory(engine):
         for p in ([root] if root.is_file() else root.rglob('*')):
             if not p.is_file() or p.is_symlink(): continue
             rel = p.relative_to(engine)
+            if excluded_legacy_afm(rel): continue
             if SKIP_PARTS.intersection(rel.parts) or p.suffix in {'.pyc','.log'}: continue
             if 'pretrained_models' in rel.parts:
                 model_rel = p.relative_to(engine/'GPT_SoVITS/pretrained_models').as_posix()
@@ -41,6 +50,7 @@ def inventory(engine):
     return sorted(files)
 
 
+# 中文维护：清点或复制到全新本机验收目录，不将本地候选包自动公开发行。
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--engine',type=Path,required=True)

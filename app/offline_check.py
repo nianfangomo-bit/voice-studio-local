@@ -11,8 +11,10 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 
+# 中文维护：检查随包依赖、基础模型、CUDA 和空间；深度模式逐文件核验清单。
 def inspect(deep=False):
     checks = []
+    # 中文维护：将单项检查结果归一化保存，供中文终端报告使用。
     def record(name, ok, detail):
         checks.append({'name': name, 'ok': bool(ok), 'detail': str(detail)})
     record('随包 Python', ROOT in Path(sys.executable).resolve().parents, sys.version.split()[0])

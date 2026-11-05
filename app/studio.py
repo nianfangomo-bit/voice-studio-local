@@ -19,10 +19,12 @@ ROOT = Path(__file__).resolve().parent
 HIDDEN = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 
 
+# 中文维护：生成独立记录标识，避免文件名和不同任务冲突。
 def uid():
     return uuid.uuid4().hex
 
 
+# 中文维护：分块计算文件 SHA-256，用于模型、缓存和成品一致性核验。
 def digest(path):
     h = hashlib.sha256()
     with Path(path).open('rb') as f:
@@ -31,6 +33,7 @@ def digest(path):
     return h.hexdigest()
 
 
+# 中文维护：先完整写入临时文件再原子替换；短暂占用时有限重试，失败保留临时成果。
 def atomic_json(path, data):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -48,6 +51,7 @@ def atomic_json(path, data):
             time.sleep(.05)
 
 
+# 中文维护：核对已确认的旧核心指纹后动态导入，核心变更必须重新确认环境。
 def load_legacy(settings):
     path = Path(settings['legacy']) / 'voice_tool' / 'main.py'
     if digest(path) != settings['legacy_hash']:
@@ -59,6 +63,7 @@ def load_legacy(settings):
     return module
 
 
+# 中文维护：解析本机文件路径并检查存在性及允许后缀，不负责模型可信度判定。
 def require_file(value, suffix=None):
     p = Path(str(value)).expanduser().resolve()
     if not p.is_file() or (suffix and p.suffix.lower() not in suffix):
@@ -67,6 +72,7 @@ def require_file(value, suffix=None):
 
 
 class Studio:
+    # 中文维护：初始化独立存储和锁，将上次未结束任务标为中断并尝试恢复已完成片段。
     def __init__(self, root=None):
         self.root = Path(root or ROOT / 'data').resolve()
         self.root.mkdir(parents=True, exist_ok=True)
@@ -89,16 +95,19 @@ class Studio:
                     pass
         self.thread = None
 
+    # 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。
     def conn(self):
         c = sqlite3.connect(str(self.db), timeout=20)
         c.execute('PRAGMA journal_mode=WAL')
         return c
 
+    # 中文维护：以类型和标识持久化记录并返回原对象。
     def save(self, kind, obj):
         with self.conn() as c:
             c.execute('INSERT OR REPLACE INTO records VALUES (?,?,?)', (kind, obj['id'], json.dumps(obj, ensure_ascii=False)))
         return obj
 
+    # 中文维护：参数化查询指定记录，不存在时返回可显示的业务错误。
     def get(self, kind, ident):
         with self.conn() as c:
             row = c.execute('SELECT body FROM records WHERE kind=? AND id=?', (kind, ident)).fetchone()
@@ -106,17 +115,20 @@ class Studio:
             raise ValueError('记录不存在')
         return json.loads(row[0])
 
+    # 中文维护：读取某类型全部记录，按入库顺序倒序返回。
     def all(self, kind):
         with self.conn() as c:
             rows = c.execute('SELECT body FROM records WHERE kind=? ORDER BY rowid DESC', (kind,)).fetchall()
         return [json.loads(r[0]) for r in rows]
 
+    # 中文维护：读取本地环境设置；首次未配置时返回空字典。
     def settings(self):
         try:
             return self.get('settings', 'local')
         except ValueError:
             return {}
 
+    # 中文维护：校验用户信任和必要文件，空闲时保存路径与引擎指纹，不安装依赖。
     def configure(self, data):
         if data.get('trusted') is not True:
             raise ValueError('请确认这是可信的本地引擎与配音程序。')
@@ -135,6 +147,7 @@ class Studio:
                 'legacy': str(legacy), 'legacy_hash': digest(core), 'ffmpeg': str(ffmpeg),
                 'engine_hash': digest(engine / 'GPT_SoVITS' / 'TTS_infer_pack' / 'TTS.py'), 'version': 'v2Pro'})
 
+    # 中文维护：检测磁盘、配置路径和显卡，返回可操作的检查结果而非音质评分。
     def check(self):
         s = self.settings()
         checks = [{'name': '项目磁盘可用空间', 'ok': shutil.disk_usage(self.root).free > 2 * 1024**3,
@@ -153,6 +166,7 @@ class Studio:
             checks.append({'name': 'NVIDIA 显卡', 'ok': False, 'detail': '未找到 nvidia-smi；当前版本需要 CUDA 环境。'})
         return checks
 
+    # 中文维护：验证模型来源确认与参考音频时长，复制参考录音并保存权重指纹。
     def import_voice(self, data):
         s = self.settings()
         if not s:
@@ -180,10 +194,12 @@ class Studio:
                  'engine_hash': s['engine_hash'], 'engine_version': s['version'], 'created': time.time()}
         return self.save('voices', voice)
 
+    # 中文维护：检查全局或指定项目是否存在排队、运行或取消中的任务。
     def busy(self, project=None):
         return any(j['state'] in ('queued', 'running', 'cancelling') and (not project or j['project_id'] == project)
                    for j in self.all('jobs'))
 
+    # 中文维护：保留原文并按标点分段，固定所选声线快照及三种文本字段。
     def create_project(self, data):
         text = str(data.get('text', '')).strip()
         if not text or len(text) > 30000:
@@ -198,6 +214,7 @@ class Studio:
                          'voice': voice, 'segments': segments, 'gap_ms': 180, 'paragraph_gap_ms': 420,
                          'speed': 1.0, 'exports': [], 'created': time.time(), 'dirty': True})
 
+    # 中文维护：仅空闲时修改指定片段的朗读和字幕文本，保留已有音频历史。
     def edit_segment(self, project_id, segment_id, data):
         with self.lock:
             if self.busy(project_id):
@@ -214,6 +231,7 @@ class Studio:
             p['dirty'] = True
             return self.save('projects', p)
 
+    # 中文维护：在合法范围内保存语速和停顿，标记成品需要重新合成。
     def options(self, project_id, data):
         with self.lock:
             if self.busy(project_id):
@@ -225,6 +243,7 @@ class Studio:
             p.update(speed=speed, gap_ms=gap, dirty=True)
             return self.save('projects', p)
 
+    # 中文维护：根据朗读文本、声线和生成参数计算缓存键；字幕与停顿不影响音频缓存。
     @staticmethod
     def fingerprint(p, seg):
         v = p['voice']
@@ -232,10 +251,12 @@ class Studio:
                  v['prompt_text'], v['engine_hash'], 'zh', 'cut0', 1.35, 15, 1.0, 32]
         return hashlib.sha256(json.dumps(value, ensure_ascii=False).encode()).hexdigest()
 
+    # 中文维护：检查片段音频存在且指纹匹配，不将旧音频当作当前文本的结果。
     def current(self, p, seg):
         audio = seg.get('audio')
         return bool(audio and audio['fingerprint'] == self.fingerprint(p, seg) and Path(audio['path']).is_file())
 
+    # 中文维护：固定任务输入快照，仅将需要生成的片段排队；单句重做可主动绕过缓存。
     def enqueue(self, project_id, mode='all', segment_id=None):
         if mode not in ('all', 'preview', 'segment'):
             raise ValueError('未知任务类型')
@@ -254,6 +275,7 @@ class Studio:
             self.wake.set()
             return j
 
+    # 中文维护：排队任务直接取消；运行任务标为取消中，交由工作线程终止。
     def cancel(self, ident):
         with self.lock:
             j = self.get('jobs', ident)
@@ -263,6 +285,7 @@ class Studio:
                 j.update(state='cancelling', message='正在停止处理进程，已完成片段会保留。')
             return self.save('jobs', j)
 
+    # 中文维护：只重排可重试任务；训练须回向导重新确认，不伪装断点续训。
     def retry(self, ident):
         j = self.get('jobs', ident)
         if j.get('kind') == 'training':
@@ -274,6 +297,7 @@ class Studio:
             return enqueue(self, j['project_id'])
         return self.enqueue(j['project_id'], j['mode'], j['segment_id'])
 
+    # 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。
     def ingest(self, j, folder):
         progress_path = folder / 'progress.json'
         if not progress_path.exists():
@@ -309,10 +333,12 @@ class Studio:
             latest.update(completed=len(progress.get('results', [])), message=progress.get('message', '处理中'))
             self.save('jobs', latest)
 
+    # 中文维护：启动单一后台消费线程；由服务入口负责避免重复实例。
     def start(self):
         self.thread = threading.Thread(target=self.loop, daemon=True)
         self.thread.start()
 
+    # 中文维护：按创建时间串行消费队列，空闲时等待唤醒以避免忙轮询。
     def loop(self):
         while not self.stopping.is_set():
             with self.lock:
@@ -328,6 +354,7 @@ class Studio:
                 continue
             self.run_job(j)
 
+    # 中文维护：启动受管工作进程、接收进度和取消请求，验证结果后保存候选声线或成品。
     def run_job(self, j):
         folder = self.root / 'jobs' / j['id']
         folder.mkdir(parents=True, exist_ok=True)
@@ -394,6 +421,7 @@ class Studio:
             latest.update(state='failed', message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
             self.save('jobs', latest)
 
+    # 中文维护：仅停止传入任务进程及其子树，并等待退出，不能用于清理未知进程。
     @staticmethod
     def stop_process(proc):
         if os.name == 'nt':
@@ -402,6 +430,7 @@ class Studio:
             proc.terminate()
         proc.wait(timeout=20)
 
+    # 中文维护：按真实采样数合并音频、字幕和时间线，创建不可变导出版本且保留旧成品。
     def export(self, p):
         if not all(self.current(p, s) for s in p['segments']):
             raise ValueError('部分朗读文本还没有对应音频，请先生成。')
@@ -459,6 +488,7 @@ class Studio:
         self.save('projects', p)
         return p
 
+    # 中文维护：限定导出文件白名单并验证导出版本归属，拒绝任意文件下载。
     def file(self, project_id, export_id, filename):
         p = self.get('projects', project_id)
         if filename not in ('narration.wav', 'subtitles.srt', 'manifest.json', 'timeline.json', 'delivery.zip', 'script.txt'):
@@ -466,8 +496,14 @@ class Studio:
         entry = next((e for e in p['exports'] if e['id'] == export_id), None)
         if not entry:
             raise ValueError('导出版本不存在')
-        return Path(entry['folder']) / filename
+        # 数据库记录也可能被外部修改；解析链接后的真实路径仍须属于当前项目的导出目录。
+        expected = (self.root / 'projects' / project_id / 'exports').resolve()
+        path = (Path(entry['folder']) / filename).resolve()
+        if self.root not in expected.parents or expected not in path.parents:
+            raise ValueError('导出路径不属于当前项目库')
+        return path
 
+    # 中文维护：组装前端状态并计算片段有效性，不返回后台任务请求快照。
     def snapshot(self):
         projects = self.all('projects')
         for p in projects:

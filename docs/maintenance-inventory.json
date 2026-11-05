@@ -1,0 +1,3528 @@
+{
+  "scope": "发布源码自有函数/路由；可选完整离线 ZIP 直属字体及度量文件，不含嵌套第三方源码压缩包",
+  "functions": [
+    {
+      "file": "app/build_portable.py",
+      "function": "excluded_legacy_afm",
+      "line": 21,
+      "comment": "# 只排除许可链未确认的旧 PS 度量文件，保留 PDF 核心度量、TTF 和全部许可证。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/build_portable.py",
+      "function": "inventory",
+      "line": 29,
+      "comment": "# 中文维护：按允许目录收集引擎文件，排除缓存、私有配置和非目标基础权重。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/build_portable.py",
+      "function": "main",
+      "line": 54,
+      "comment": "# 中文维护：清点或复制到全新本机验收目录，不将本地候选包自动公开发行。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/inference_worker.py",
+      "function": "main",
+      "line": 15,
+      "comment": "# 中文维护：核验引擎、权重和参考音频指纹后持锁生成片段；验证通过才写入恢复记录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/inference_worker.py",
+      "function": "progress",
+      "line": 21,
+      "comment": "# 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/inference_worker.py",
+      "function": "watch",
+      "line": 33,
+      "comment": "# 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/launcher.py",
+      "function": "existing_session",
+      "line": 25,
+      "comment": "# 中文维护：仅直连回环地址验证现有会话，拒绝代理和重定向转发启动凭据。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/launcher.py",
+      "function": "wait_for_service",
+      "line": 45,
+      "comment": "# 中文维护：等待认证健康检查成功；超时只报错，不擅自杀死仍可能就绪的服务。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/launcher.py",
+      "function": "main",
+      "line": 58,
+      "comment": "# 中文维护：优先复用现有会话或随包 Python，选择空闲端口后启动工作台。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/launcher.py",
+      "function": "redirect_request",
+      "line": 20,
+      "comment": "# 中文维护：拒绝自动重定向，避免启动令牌或发布凭据被转发。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "resolve_path",
+      "line": 32,
+      "comment": "# 中文维护：将相对路径解析到指定基准，保留兼容命令行工作流。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "load_config",
+      "line": 40,
+      "comment": "# 中文维护：读取 UTF-8 配置文件并返回参数字典。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "split_script",
+      "line": 47,
+      "comment": "# 中文维护：保留标点并按段落与句末切分，记录段落间隔标识。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "post_tts",
+      "line": 64,
+      "comment": "# 中文维护：调用旧 TTS HTTP 服务并验证返回 WAV，JSON 错误不能当作音频。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "ensure_wav",
+      "line": 94,
+      "comment": "# 中文维护：尝试解析 WAV 头部，格式错误时给出明确失败。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "_pcm_rms_and_peak",
+      "line": 103,
+      "comment": "# 中文维护：从整数 PCM 采样计算归一化 RMS 和峰值，兼容不同采样宽度。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "minimum_plausible_duration_ms",
+      "line": 127,
+      "comment": "# 中文维护：给出保守的异常短音频门槛，不将此启发式当作漏读识别。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "validate_segment_wav",
+      "line": 135,
+      "comment": "# 中文维护：检查 PCM 参数、时长和近静音，返回实际测量值。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "generate_segment_with_retry",
+      "line": 165,
+      "comment": "# 中文维护：使用临时文件有限重试，仅将验证通过的音频替换为目标结果。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "wav_duration_ms",
+      "line": 201,
+      "comment": "# 中文维护：依据实际采样帧数计算毫秒时长。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "silence_frames",
+      "line": 209,
+      "comment": "# 中文维护：按目标 PCM 格式创建指定时长的零采样间隔。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "normalize_wav",
+      "line": 217,
+      "comment": "# 中文维护：仅对调用者指定的任务音频统一采样率与声道，经临时文件替换。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "combine_wavs",
+      "line": 241,
+      "comment": "# 中文维护：统一片段格式后插入停顿并合并，回填每段真实起止时间。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "fmt_srt_time",
+      "line": 284,
+      "comment": "# 中文维护：将毫秒转换为 SRT 的时分秒与三位毫秒格式。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "write_srt",
+      "line": 295,
+      "comment": "# 中文维护：按已计算时间与文本写出 UTF-8 句级字幕。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "write_manifest",
+      "line": 307,
+      "comment": "# 中文维护：写出旧命令行工作流的音频、字幕和分段清单。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "resolve_audio_path_for_api",
+      "line": 327,
+      "comment": "# 中文维护：为旧 API 解析参考音频本机路径。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "build_payload",
+      "line": 332,
+      "comment": "# 中文维护：组合参考音频、语言和生成参数，兼容原工作流配置。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "check_api",
+      "line": 347,
+      "comment": "# 中文维护：命令行短句连通性检查，并非工作台暴露的 HTTP 路由。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "run",
+      "line": 361,
+      "comment": "# 中文维护：执行旧命令行文案配音闭环；保留供既有用户和外部流程调用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/legacy/voice_tool/main.py",
+      "function": "main",
+      "line": 431,
+      "comment": "# 中文维护：解析旧命令行参数并把失败转换为非零退出码。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/offline_check.py",
+      "function": "inspect",
+      "line": 15,
+      "comment": "# 中文维护：检查随包依赖、基础模型、CUDA 和空间；深度模式逐文件核验清单。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/offline_check.py",
+      "function": "record",
+      "line": 18,
+      "comment": "# 中文维护：将单项检查结果归一化保存，供中文终端报告使用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/package_offline.py",
+      "function": "main",
+      "line": 18,
+      "comment": "# 中文维护：按显式清单组装完整离线包，保留许可证、生成文件哈希且拒绝覆盖旧产物。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation.py",
+      "function": "create",
+      "line": 12,
+      "comment": "# 中文维护：确认素材授权并创建空录音库，预填保守训练参数。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation.py",
+      "function": "upload_target",
+      "line": 24,
+      "comment": "# 中文维护：检查格式、容量和任务状态，返回服务器生成的独立保存路径。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation.py",
+      "function": "register_upload",
+      "line": 42,
+      "comment": "# 中文维护：持锁登记已保存录音与哈希；并发冲突时保留文件但拒绝入库。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation.py",
+      "function": "enqueue",
+      "line": 56,
+      "comment": "# 中文维护：检查离线转写组件与原始录音后创建 CPU 整理任务，不自动下载模型。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "audio_quality",
+      "line": 16,
+      "comment": "# 中文维护：计算采样峰值、RMS 与静音/削波比例，仅提供可复核告警，不生成主观分数。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "bounded_chunks",
+      "line": 35,
+      "comment": "# 中文维护：兼容上游短录音返回格式，最长十秒硬切并标记需人工检查的边界。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "main",
+      "line": 55,
+      "comment": "# 中文维护：在 CPU 上离线转换、切分、转写并保存可校对片段，原录音保持不变。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "progress",
+      "line": 78,
+      "comment": "# 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "watch",
+      "line": 71,
+      "comment": "# 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/preparation_worker.py",
+      "function": "offline",
+      "line": 86,
+      "comment": "# 中文维护：拒绝工作进程网络连接，缺失模型应明确失败而非隐式下载。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "validate_package",
+      "line": 23,
+      "comment": "# 中文维护：核对所有分卷、版本和合并摘要，防止漏卷或混用不同版本。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "validate_existing_asset",
+      "line": 57,
+      "comment": "# 中文维护：依据大小、上传状态和内容摘要判断是否可安全复用远端附件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "main",
+      "line": 84,
+      "comment": "# 中文维护：校验本地产物并认证目标仓库，在明确参数控制下上传发行附件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "redirect_request",
+      "line": 52,
+      "comment": "# 中文维护：拒绝自动重定向，避免启动令牌或发布凭据被转发。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "__init__",
+      "line": 69,
+      "comment": "# 中文维护：打开待上传文件并初始化限频进度记录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "read",
+      "line": 72,
+      "comment": "# 中文维护：分块读取上传数据并报告实际字节进度。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "close",
+      "line": 80,
+      "comment": "# 中文维护：释放上传文件句柄。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/publish_offline_release.py",
+      "function": "request",
+      "line": 106,
+      "comment": "# 中文维护：构造认证 API 请求，区分 JSON 与二进制载荷并限制重定向。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "make_app",
+      "line": 18,
+      "comment": "# 中文维护：构建仅供本机工作台使用的路由集合，不启动工作线程或公开调试文档。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "main",
+      "line": 253,
+      "comment": "# 中文维护：获取单实例锁后初始化存储与任务服务，仅监听回环地址并生成启动会话。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "security",
+      "line": 25,
+      "comment": "# 中文维护：统一校验 Host、Origin 和会话令牌，附加禁缓存与浏览器安全响应头。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "value_error",
+      "line": 44,
+      "comment": "# 中文维护：将业务校验失败转换为可理解的 400 响应。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "key_error",
+      "line": 49,
+      "comment": "# 中文维护：隐藏内部字段细节，提示用户补齐输入。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "general_error",
+      "line": 54,
+      "comment": "# 中文维护：在本机日志保留异常细节，向界面返回不含堆栈的恢复提示。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "index",
+      "line": 61,
+      "comment": "# 中文维护：返回随应用打包的工作台入口。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "static",
+      "line": 66,
+      "comment": "# 中文维护：仅提供白名单脚本与样式，防止读取源码或私有文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "connect",
+      "line": 73,
+      "comment": "# 中文维护：核验启动令牌并创建 HttpOnly 会话，不是无认证的调试登录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "state",
+      "line": 82,
+      "comment": "# 中文维护：读取工作台状态，供页面轮询任务与作品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "settings",
+      "line": 87,
+      "comment": "# 中文维护：保存经过用户信任确认的本机引擎配置。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "check",
+      "line": 92,
+      "comment": "# 中文维护：提供用户点击触发的环境诊断，不是开发测试接口。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "voices",
+      "line": 97,
+      "comment": "# 中文维护：导入用户明确授权且可信的模型组合与参考录音。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "publish",
+      "line": 102,
+      "comment": "# 中文维护：要求用户确认试听，并由业务层核实已生成未见文本后发布候选声线。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "dataset_import",
+      "line": 110,
+      "comment": "# 中文维护：导入既有标注清单，供高级素材入口使用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "recording_dataset",
+      "line": 116,
+      "comment": "# 中文维护：创建保留原始录音的素材库。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "recording_upload",
+      "line": 122,
+      "comment": "# 中文维护：按大小限制流式保存录音；失败只清理本请求的未完成临时文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "recording_prepare",
+      "line": 149,
+      "comment": "# 中文维护：将素材库的离线切分转写任务入队。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "dataset_update",
+      "line": 155,
+      "comment": "# 中文维护：保存片段校对和训练参数，并更新素材修订号。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "dataset_plan",
+      "line": 161,
+      "comment": "# 中文维护：读取真实素材与依赖状态，生成训练前确认计划。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "dataset_train",
+      "line": 167,
+      "comment": "# 中文维护：校验已确认的计划修订号后排队真实训练。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "dataset_audio",
+      "line": 173,
+      "comment": "# 中文维护：按数据集和片段标识提供试听，只允许读取项目库内的音频。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "create",
+      "line": 185,
+      "comment": "# 中文维护：创建保留原文、声线快照和分段文本的配音项目。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "edit",
+      "line": 190,
+      "comment": "# 中文维护：保存指定片段修改，不立即触发整篇配音。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "options",
+      "line": 195,
+      "comment": "# 中文维护：更新语速及停顿，由业务层检查任务状态和参数范围。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "generate",
+      "line": 200,
+      "comment": "# 中文维护：提交首句、全文或指定片段生成请求，不在 HTTP 请求中长时间占用显卡。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "job",
+      "line": 205,
+      "comment": "# 中文维护：仅分派取消或重试两种任务操作，拒绝其他动作。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "log",
+      "line": 214,
+      "comment": "# 中文维护：读取已登记任务的有限日志尾部，供错误诊断，不接受任意文件路径。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "audio",
+      "line": 233,
+      "comment": "# 中文维护：按已登记片段返回项目库内音频，拒绝库外路径。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/server.py",
+      "function": "download",
+      "line": 245,
+      "comment": "# 中文维护：通过版本和文件白名单下载音频、字幕或交付包。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "uid",
+      "line": 23,
+      "comment": "# 中文维护：生成独立记录标识，避免文件名和不同任务冲突。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "digest",
+      "line": 28,
+      "comment": "# 中文维护：分块计算文件 SHA-256，用于模型、缓存和成品一致性核验。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "atomic_json",
+      "line": 37,
+      "comment": "# 中文维护：先完整写入临时文件再原子替换；短暂占用时有限重试，失败保留临时成果。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "load_legacy",
+      "line": 55,
+      "comment": "# 中文维护：核对已确认的旧核心指纹后动态导入，核心变更必须重新确认环境。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "require_file",
+      "line": 67,
+      "comment": "# 中文维护：解析本机文件路径并检查存在性及允许后缀，不负责模型可信度判定。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "__init__",
+      "line": 76,
+      "comment": "# 中文维护：初始化独立存储和锁，将上次未结束任务标为中断并尝试恢复已完成片段。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "conn",
+      "line": 99,
+      "comment": "# 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "save",
+      "line": 105,
+      "comment": "# 中文维护：以类型和标识持久化记录并返回原对象。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "get",
+      "line": 111,
+      "comment": "# 中文维护：参数化查询指定记录，不存在时返回可显示的业务错误。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "all",
+      "line": 119,
+      "comment": "# 中文维护：读取某类型全部记录，按入库顺序倒序返回。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "settings",
+      "line": 125,
+      "comment": "# 中文维护：读取本地环境设置；首次未配置时返回空字典。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "configure",
+      "line": 132,
+      "comment": "# 中文维护：校验用户信任和必要文件，空闲时保存路径与引擎指纹，不安装依赖。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "check",
+      "line": 151,
+      "comment": "# 中文维护：检测磁盘、配置路径和显卡，返回可操作的检查结果而非音质评分。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "import_voice",
+      "line": 170,
+      "comment": "# 中文维护：验证模型来源确认与参考音频时长，复制参考录音并保存权重指纹。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "busy",
+      "line": 198,
+      "comment": "# 中文维护：检查全局或指定项目是否存在排队、运行或取消中的任务。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "create_project",
+      "line": 203,
+      "comment": "# 中文维护：保留原文并按标点分段，固定所选声线快照及三种文本字段。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "edit_segment",
+      "line": 218,
+      "comment": "# 中文维护：仅空闲时修改指定片段的朗读和字幕文本，保留已有音频历史。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "options",
+      "line": 235,
+      "comment": "# 中文维护：在合法范围内保存语速和停顿，标记成品需要重新合成。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "fingerprint",
+      "line": 248,
+      "comment": "# 中文维护：根据朗读文本、声线和生成参数计算缓存键；字幕与停顿不影响音频缓存。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "current",
+      "line": 255,
+      "comment": "# 中文维护：检查片段音频存在且指纹匹配，不将旧音频当作当前文本的结果。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "enqueue",
+      "line": 260,
+      "comment": "# 中文维护：固定任务输入快照，仅将需要生成的片段排队；单句重做可主动绕过缓存。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "cancel",
+      "line": 279,
+      "comment": "# 中文维护：排队任务直接取消；运行任务标为取消中，交由工作线程终止。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "retry",
+      "line": 289,
+      "comment": "# 中文维护：只重排可重试任务；训练须回向导重新确认，不伪装断点续训。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "ingest",
+      "line": 301,
+      "comment": "# 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "start",
+      "line": 337,
+      "comment": "# 中文维护：启动单一后台消费线程；由服务入口负责避免重复实例。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "loop",
+      "line": 342,
+      "comment": "# 中文维护：按创建时间串行消费队列，空闲时等待唤醒以避免忙轮询。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "run_job",
+      "line": 358,
+      "comment": "# 中文维护：启动受管工作进程、接收进度和取消请求，验证结果后保存候选声线或成品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "stop_process",
+      "line": 426,
+      "comment": "# 中文维护：仅停止传入任务进程及其子树，并等待退出，不能用于清理未知进程。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "export",
+      "line": 434,
+      "comment": "# 中文维护：按真实采样数合并音频、字幕和时间线，创建不可变导出版本且保留旧成品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "file",
+      "line": 492,
+      "comment": "# 中文维护：限定导出文件白名单并验证导出版本归属，拒绝任意文件下载。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/studio.py",
+      "function": "snapshot",
+      "line": 507,
+      "comment": "# 中文维护：组装前端状态并计算片段有效性，不返回后台任务请求快照。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_font_policy.py",
+      "function": "test_exact_scope",
+      "line": 12,
+      "comment": "# 只匹配指定供应方目录，不能误删同名用户文件或有许可的 PDF 度量。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_font_policy.py",
+      "function": "test_changed_legacy_requires_confirmation",
+      "line": 20,
+      "comment": "# 升级后未知核心指纹必须继续阻止执行，不能为了省事自动信任新代码。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_launcher.py",
+      "function": "test_ready_before_exit",
+      "line": 12,
+      "comment": "# 中文维护：确认服务就绪优先于进程退出判断。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_launcher.py",
+      "function": "test_exited_is_not_success",
+      "line": 18,
+      "comment": "# 中文维护：确认启动进程退出不会被误报为成功。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_launcher.py",
+      "function": "test_timeout_does_not_kill_service",
+      "line": 24,
+      "comment": "# 中文维护：确认启动超时不会终止可能仍在初始化的服务。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_launcher.py",
+      "function": "test_bad_session_never_contacts_network",
+      "line": 30,
+      "comment": "# 中文维护：确认无效会话地址不会触发外网访问。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_launcher.py",
+      "function": "test_redirect_is_rejected",
+      "line": 38,
+      "comment": "# 中文维护：确认认证启动请求拒绝重定向。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "setUp",
+      "line": 14,
+      "comment": "# 创建隔离服务和数据库，不启动训练线程或读取真实用户数据。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "tearDown",
+      "line": 24,
+      "comment": "# 关闭测试客户端，只清理本次测试独占的临时目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_debug_routes_absent",
+      "line": 29,
+      "comment": "# 确认未暴露默认 API 文档和常见开发接口；不存在不等于曾删除过。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_all_api_routes_require_session",
+      "line": 35,
+      "comment": "# 对每条实际注册业务路由检查无会话请求均被拦截，避免清理时漏掉认证。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_dataset_audio_rejects_external_path",
+      "line": 48,
+      "comment": "# 模拟记录被外部篡改，素材试听不能读取数据目录外的文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_dataset_audio_inside_store_still_available",
+      "line": 57,
+      "comment": "# 合法素材试听保持可用，路径安全检查不能误伤本地文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_export_rejects_external_folder",
+      "line": 64,
+      "comment": "# 下载记录不能通过替换导出目录读取库外同名文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_export_rejects_another_project_folder",
+      "line": 70,
+      "comment": "# 同一数据库中的其他项目也不是当前项目的合法导出目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_maintenance_security.py",
+      "function": "test_static_source_files_are_not_served",
+      "line": 77,
+      "comment": "# 静态文件必须使用固定允许列表，不能通过静态接口取得 Python 源码。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "setUp",
+      "line": 15,
+      "comment": "# 中文维护：创建本测试独占的临时数据与夹具，不使用用户模型或作品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "tearDown",
+      "line": 21,
+      "comment": "# 中文维护：释放测试资源并清理本测试创建的临时目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_requires_authorization",
+      "line": 25,
+      "comment": "# 中文维护：确认没有录音授权时拒绝创建素材。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_upload_has_server_generated_path",
+      "line": 29,
+      "comment": "# 中文维护：确认上传路径由服务生成，不采信用户文件名中的路径。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_reject_non_audio",
+      "line": 40,
+      "comment": "# 中文维护：确认不支持的录音扩展名被拒绝。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_missing_model_does_not_enqueue",
+      "line": 44,
+      "comment": "# 中文维护：确认缺少模型时不启动任务或下载。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_exclude_empty_transcription",
+      "line": 52,
+      "comment": "# 中文维护：确认空转写可排除但不能作为有效标注。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_progress_preserves_old_review_revision",
+      "line": 59,
+      "comment": "# 中文维护：确认重新整理录音前保存旧校对版本。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_silence_and_clipping_are_measurements_not_score",
+      "line": 74,
+      "comment": "# 中文维护：确认静音和削波返回实测告警而非伪造音质评分。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation.py",
+      "function": "test_short_clip_does_not_call_vendor_bug",
+      "line": 80,
+      "comment": "# 中文维护：确认短录音绕开上游切分返回格式缺陷。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "setUp",
+      "line": 14,
+      "comment": "# 中文维护：创建本测试独占的临时数据与夹具，不使用用户模型或作品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "tearDown",
+      "line": 22,
+      "comment": "# 中文维护：释放测试资源并清理本测试创建的临时目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "create",
+      "line": 27,
+      "comment": "# 中文维护：通过认证测试客户端创建隔离录音库。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_upload_and_no_original_overwrite",
+      "line": 33,
+      "comment": "# 中文维护：确认同名上传产生独立文件，不覆盖旧录音。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_empty_upload_and_unsupported_extension",
+      "line": 44,
+      "comment": "# 中文维护：确认空文件和非法后缀被拒绝且不留下半成品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_oversize_stream_removes_only_own_partial",
+      "line": 52,
+      "comment": "# 中文维护：确认流式超限仅删除当前临时文件，不删除历史成果。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_host_and_missing_origin_rejected",
+      "line": 67,
+      "comment": "# 中文维护：确认恶意 Host 和缺失 Origin 的写操作被拒绝。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_connect_requires_start_token",
+      "line": 73,
+      "comment": "# 中文维护：确认创建会话必须持有启动令牌并设置安全 Cookie。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_preparation_api.py",
+      "function": "test_origin_and_cookie_required",
+      "line": 83,
+      "comment": "# 中文维护：确认上传同时检查来源和认证会话。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "setUp",
+      "line": 12,
+      "comment": "# 中文维护：创建本测试独占的临时数据与夹具，不使用用户模型或作品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "tearDown",
+      "line": 22,
+      "comment": "# 中文维护：释放测试资源并清理本测试创建的临时目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_complete",
+      "line": 24,
+      "comment": "# 中文维护：确认完整、匹配的分卷清单通过发布前检查。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_corruption",
+      "line": 26,
+      "comment": "# 中文维护：确认损坏分卷不能通过校验。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_mixed_version",
+      "line": 30,
+      "comment": "# 中文维护：确认混合版本清单被拒绝。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_bad_combined_digest",
+      "line": 34,
+      "comment": "# 中文维护：确认整包摘要不一致时停止发布。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_missing_instructions",
+      "line": 38,
+      "comment": "# 中文维护：确认缺少必要安装说明时不能发布。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_existing_same_size_wrong_content_rejected",
+      "line": 42,
+      "comment": "# 中文维护：确认同大小但不同内容的远端附件不能复用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_existing_missing_digest_rejected",
+      "line": 47,
+      "comment": "# 中文维护：确认缺少摘要的附件不视为校验通过。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_release_validation.py",
+      "function": "test_existing_verified_content_accepted",
+      "line": 52,
+      "comment": "# 中文维护：确认状态、大小与摘要均匹配的附件可复用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_startup_safety.py",
+      "function": "test_launcher_does_not_recover_database",
+      "line": 14,
+      "comment": "# 中文维护：确认重开启动器不会把正在运行的任务误标为中断。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_startup_safety.py",
+      "function": "test_busy_service_exits_before_opening_database",
+      "line": 21,
+      "comment": "# 中文维护：确认第二服务实例在碰触数据库前退出。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "setUp",
+      "line": 15,
+      "comment": "# 中文维护：创建本测试独占的临时数据与夹具，不使用用户模型或作品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "tearDown",
+      "line": 36,
+      "comment": "# 中文维护：释放测试资源并清理本测试创建的临时目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_export_sample_timeline_and_portability",
+      "line": 40,
+      "comment": "# 中文维护：用合成音频验证实际时长、字幕、相对路径和交付包。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_display_edit_reuses_audio",
+      "line": 54,
+      "comment": "# 中文维护：确认仅改字幕仍可复用配音缓存。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_spoken_edit_invalidates_only_one",
+      "line": 60,
+      "comment": "# 中文维护：确认改朗读文本只使对应片段缓存失效。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_speed_invalidates_all",
+      "line": 68,
+      "comment": "# 中文维护：确认语速变化使音频缓存全部失效。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_gap_reuses_audio",
+      "line": 73,
+      "comment": "# 中文维护：确认停顿变化只需重合成，不重配音。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_busy_prevents_edit_and_duplicate_job",
+      "line": 78,
+      "comment": "# 中文维护：确认运行中禁止修改项目或重复提交任务。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_cancel_and_retry",
+      "line": 84,
+      "comment": "# 中文维护：确认取消任务后可重新排队。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_restart_marks_interrupted",
+      "line": 90,
+      "comment": "# 中文维护：确认重启明确标记未完成任务而非丢失状态。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_export_does_not_overwrite",
+      "line": 96,
+      "comment": "# 中文维护：确认新导出版本不覆盖旧音频。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_path_traversal_rejected",
+      "line": 105,
+      "comment": "# 中文维护：确认下载文件名不能越过导出目录。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_missing_audio_blocks_export",
+      "line": 110,
+      "comment": "# 中文维护：确认音频缺失时禁止合成不完整成品。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_http_auth_origin_host",
+      "line": 115,
+      "comment": "# 中文维护：确认状态及写接口校验会话、来源和主机。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_training_import_preserves_original_and_requires_review",
+      "line": 127,
+      "comment": "# 中文维护：确认导入保留原文件并要求人工校对。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_training_rejects_untrusted_material_and_bad_params",
+      "line": 141,
+      "comment": "# 中文维护：确认未授权素材和越界参数不能进入训练。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_training_plan_reports_missing_and_unreviewed",
+      "line": 149,
+      "comment": "# 中文维护：确认缺文件和未校对状态会阻止训练。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_training_checkpoint_directory_exists_before_save",
+      "line": 164,
+      "comment": "# 中文维护：确认检查点目录提前创建且重复调用安全。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/tests/test_studio.py",
+      "function": "test_persistent_dataloader_has_nonzero_workers",
+      "line": 171,
+      "comment": "# 中文维护：确认上游持久数据加载器不会收到零 worker。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "initialize_checkpoint_directory",
+      "line": 11,
+      "comment": "# 中文维护：补建上游训练脚本假设已存在的检查点目录，重复调用保持幂等。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "compatible_loader_workers",
+      "line": 18,
+      "comment": "# 中文维护：上游固定启用持久 worker，将数量限制为至少一以避免 DataLoader 报错。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "import_dataset",
+      "line": 24,
+      "comment": "# 中文维护：先验证全份标注，再复制录音到独立素材库，不修改原文件。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "update_dataset",
+      "line": 61,
+      "comment": "# 中文维护：空闲时保存人工校对、排除状态或受限参数，每次变更递增修订号。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "plan",
+      "line": 85,
+      "comment": "# 中文维护：汇总可用素材、校对状态、基础模型和磁盘空间；推荐参数不是质量保证。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "enqueue",
+      "line": 116,
+      "comment": "# 中文维护：核实授权确认、修订号和计划就绪后保存训练快照并排队。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training.py",
+      "function": "publish",
+      "line": 137,
+      "comment": "# 中文维护：仅允许已用未见文本生成试听的候选声线发布，保留原模型版本。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training_worker.py",
+      "function": "main",
+      "line": 16,
+      "comment": "# 中文维护：在独立任务目录执行六阶段微调，持有 GPU 锁并保留日志、检查点和候选模型。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training_worker.py",
+      "function": "progress",
+      "line": 26,
+      "comment": "# 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training_worker.py",
+      "function": "watch",
+      "line": 42,
+      "comment": "# 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。",
+      "chinese_comment": true
+    },
+    {
+      "file": "app/training_worker.py",
+      "function": "run",
+      "line": 83,
+      "comment": "# 中文维护：执行允许的上游训练阶段，记录真实日志；非零退出立即停止后续阶段。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/audit-maintenance.py",
+      "function": "functions",
+      "line": 16,
+      "comment": "# 收集自有 Python 函数及相邻中文注释；第三方源码归原供应方维护。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/audit-maintenance.py",
+      "function": "routes",
+      "line": 33,
+      "comment": "# 读取真实装饰器注册的路由；用途由报告人工复核，不用“前端没搜到”自动判死代码。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/audit-maintenance.py",
+      "function": "font_metadata",
+      "line": 46,
+      "comment": "# 从实际字体二进制读取授权字段，不能拿 JavaScript 库许可证冒充字体许可证。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/audit-maintenance.py",
+      "function": "fonts",
+      "line": 53,
+      "comment": "# 对实际离线包逐文件记录哈希、授权证据和保留理由；不触碰已发布压缩包。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/audit-maintenance.py",
+      "function": "main",
+      "line": 93,
+      "comment": "# 从命令行指定源码与待审离线包，生成脱敏清单供审阅及后续差异比较。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/test-audio-tools.py",
+      "function": "run",
+      "line": 7,
+      "comment": "# 中文维护：限时运行音频工具测试命令，非零退出保留错误信息。",
+      "chinese_comment": true
+    },
+    {
+      "file": "packaging/test-font-policy.py",
+      "function": "main",
+      "line": 18,
+      "comment": "# 复制小型绘图资源并实际运行引擎频谱绘图函数；结果不是完整训练或离线包验收。",
+      "chinese_comment": true
+    }
+  ],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/",
+      "handler": "index",
+      "line": 61,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/static/{name}",
+      "handler": "static",
+      "line": 66,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/connect",
+      "handler": "connect",
+      "line": 73,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/state",
+      "handler": "state",
+      "line": 82,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/settings",
+      "handler": "settings",
+      "line": 87,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/check",
+      "handler": "check",
+      "line": 92,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/voices",
+      "handler": "voices",
+      "line": 97,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/voices/{vid}/publish",
+      "handler": "publish",
+      "line": 102,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/datasets",
+      "handler": "dataset_import",
+      "line": 110,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/recording-datasets",
+      "handler": "recording_dataset",
+      "line": 116,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/datasets/{did}/recordings",
+      "handler": "recording_upload",
+      "line": 122,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/datasets/{did}/prepare",
+      "handler": "recording_prepare",
+      "line": 149,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/datasets/{did}",
+      "handler": "dataset_update",
+      "line": 155,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/datasets/{did}/plan",
+      "handler": "dataset_plan",
+      "line": 161,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/datasets/{did}/train",
+      "handler": "dataset_train",
+      "line": 167,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/datasets/{did}/audio/{rid}",
+      "handler": "dataset_audio",
+      "line": 173,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects",
+      "handler": "create",
+      "line": 185,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/{pid}/segments/{sid}",
+      "handler": "edit",
+      "line": 190,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/{pid}/options",
+      "handler": "options",
+      "line": 195,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/{pid}/generate",
+      "handler": "generate",
+      "line": 200,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/jobs/{jid}/{action}",
+      "handler": "job",
+      "line": 205,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/{jid}/log",
+      "handler": "log",
+      "line": 214,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{pid}/segments/{sid}/audio",
+      "handler": "audio",
+      "line": 233,
+      "decision": "retain: reviewed product entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/{pid}/exports/{eid}/{filename}",
+      "handler": "download",
+      "line": 245,
+      "decision": "retain: reviewed product entry"
+    }
+  ],
+  "repository_font_files": [],
+  "packaged_fonts": [
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+      "bytes": 28076,
+      "sha256": "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_AMS.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+      "bytes": 33516,
+      "sha256": "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_AMS.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+      "bytes": 63632,
+      "sha256": "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_AMS.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+      "bytes": 12368,
+      "sha256": "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+      "bytes": 7716,
+      "sha256": "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+      "bytes": 6912,
+      "sha256": "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+      "bytes": 7656,
+      "sha256": "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+      "bytes": 6908,
+      "sha256": "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+      "bytes": 12344,
+      "sha256": "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Caligraphic.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+      "bytes": 19584,
+      "sha256": "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+      "bytes": 13296,
+      "sha256": "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+      "bytes": 11348,
+      "sha256": "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+      "bytes": 19572,
+      "sha256": "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+      "bytes": 11316,
+      "sha256": "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+      "bytes": 13208,
+      "sha256": "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Fraktur.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+      "bytes": 25324,
+      "sha256": "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+      "bytes": 29912,
+      "sha256": "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+      "bytes": 51336,
+      "sha256": "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+      "bytes": 16780,
+      "sha256": "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+      "bytes": 32968,
+      "sha256": "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+      "bytes": 19412,
+      "sha256": "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+      "bytes": 33580,
+      "sha256": "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Italic-BMLOBm91.woff",
+      "bytes": 19676,
+      "sha256": "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+      "bytes": 16988,
+      "sha256": "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Regular-B22Nviop.woff2",
+      "bytes": 26272,
+      "sha256": "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+      "bytes": 30772,
+      "sha256": "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+      "bytes": 53580,
+      "sha256": "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Main.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+      "bytes": 31196,
+      "sha256": "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+      "bytes": 16400,
+      "sha256": "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+      "bytes": 18668,
+      "sha256": "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-Italic-DA0__PXp.woff",
+      "bytes": 18748,
+      "sha256": "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+      "bytes": 31308,
+      "sha256": "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Math-Italic-t53AETM-.woff2",
+      "bytes": 16440,
+      "sha256": "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Math.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+      "bytes": 24504,
+      "sha256": "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+      "bytes": 12216,
+      "sha256": "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+      "bytes": 14408,
+      "sha256": "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+      "bytes": 12028,
+      "sha256": "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+      "bytes": 14112,
+      "sha256": "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+      "bytes": 22364,
+      "sha256": "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+      "bytes": 19436,
+      "sha256": "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+      "bytes": 12316,
+      "sha256": "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+      "bytes": 10344,
+      "sha256": "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_SansSerif.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+      "bytes": 16648,
+      "sha256": "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Script.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+      "bytes": 9644,
+      "sha256": "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Script.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Script-Regular-D5yQViql.woff",
+      "bytes": 10588,
+      "sha256": "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Script.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size1-Regular-C195tn64.woff",
+      "bytes": 6496,
+      "sha256": "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size1.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+      "bytes": 12228,
+      "sha256": "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size1.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+      "bytes": 5468,
+      "sha256": "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size1.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+      "bytes": 11508,
+      "sha256": "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size2.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+      "bytes": 5208,
+      "sha256": "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size2.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+      "bytes": 6188,
+      "sha256": "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size2.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+      "bytes": 4420,
+      "sha256": "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size3.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+      "bytes": 7588,
+      "sha256": "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size3.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+      "bytes": 5980,
+      "sha256": "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size4.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+      "bytes": 4928,
+      "sha256": "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size4.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+      "bytes": 10364,
+      "sha256": "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Size4.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+      "bytes": 16028,
+      "sha256": "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Typewriter.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+      "bytes": 13568,
+      "sha256": "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Typewriter.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/gradio/templates/frontend/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+      "bytes": 27556,
+      "sha256": "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "KaTeX (Gradio 4.44.1)",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留声明和许可证，不可单卖字体",
+      "evidence": [
+        "Copyright (c) 2009-2010 Design Science, Inc.\nCopyright (c) 2014-2018 Khan Academy",
+        "Copyright (c) 2009-2010, Design Science, Inc. (<www.mathjax.org>)\nCopyright (c) 2014-2018 Khan Academy (<www.khanacademy.org>),\nwith Reserved Font Name KaTeX_Typewriter.\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license available with a FAQ at:\nhttp://scripts.sil.org/OFL",
+        "http://scripts.sil.org/OFL"
+      ],
+      "usage": "Gradio frontend CSS 引用；本产品静态白名单不提供该第三方页面"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmex10.afm",
+      "bytes": 12290,
+      "sha256": "cdd0edb72caa43a01ae403155a8c2935680492c4d7e4a50016a52314c4c18947",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmmi10.afm",
+      "bytes": 10742,
+      "sha256": "742abe4160bd565e1699c0fd20e8be08c301faf9958fc5414ce252db4383302d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmr10.afm",
+      "bytes": 10444,
+      "sha256": "6c66fa5c04be1f8f2f87ebe6beb17494cba73f573e446341dd4ce6d409bdbdec",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmsy10.afm",
+      "bytes": 8490,
+      "sha256": "971851d028dc4d5c4ab10e063def32a42e0375809b9f98f821796ad904c07033",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/cmtt10.afm",
+      "bytes": 6657,
+      "sha256": "905cc1434597d06641b2cd2397f328809ed9bc408213c3272e95f9f081515055",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagd8a.afm",
+      "bytes": 17759,
+      "sha256": "ffef35f8ae0819c9c45d998eaa420cc8be3680145cc4c12e93c37ca270ed2c83",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagdo8a.afm",
+      "bytes": 17831,
+      "sha256": "1abb1b4623787eea0f2be4a268c9e09e68b92b2642fe73857ff2d8164fcbbb18",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagk8a.afm",
+      "bytes": 17814,
+      "sha256": "163cfe394cc4f6a07e302a2c0ee52b06732af015e695dc7a8ffce08f698a7359",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pagko8a.afm",
+      "bytes": 17919,
+      "sha256": "a52ef5e9a970eb2b666184919f3ea13ef6f50593e5ab76948958891586a0b079",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkd8a.afm",
+      "bytes": 15572,
+      "sha256": "58e256e619c49f0050190b15c6d7572363c9d66f2ac05fb10b89fa683dfe8512",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkdi8a.afm",
+      "bytes": 15695,
+      "sha256": "e83d9246171873e6a9abf42aeb66e3fc5c14fee1f120ad3d4edff08d24894bb7",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkl8a.afm",
+      "bytes": 15407,
+      "sha256": "fd926e1412a8cfbd04f92065846e136fd62ac66dc8e83fa300ba72f91faf71ec",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pbkli8a.afm",
+      "bytes": 15591,
+      "sha256": "d7fe9be7960f0d793d6b74549cdbe36bbcb6891dcfe812a787a0ef90f9d9e690",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrb8a.afm",
+      "bytes": 15696,
+      "sha256": "e420c97b7b7bd5a339aa29c361213cb2f5a173a463b5e64f36c94ebcd569f0d0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrbo8a.afm",
+      "bytes": 15766,
+      "sha256": "8cd7db6c11dfc2fbb4460971b8b7ae8752b5d0a584923d65115251fe15d04961",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrr8a.afm",
+      "bytes": 15683,
+      "sha256": "1f1e17f646ec466fd2ddea3d58b8ee390cee3a67991cedf76faba10d3b07d4d4",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pcrro8a.afm",
+      "bytes": 15787,
+      "sha256": "0cbac19b888ebe30a92819f20bbc8600ee1f748bd15023b4b95fe4422cbd55f4",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvb8a.afm",
+      "bytes": 17725,
+      "sha256": "3d1ff26ebd87571e9a397551cdaedafb6e7902d184c83c23fe90bfc4ad551f5a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvb8an.afm",
+      "bytes": 17656,
+      "sha256": "a451dd8d1804a0ac719a57f53dc4dcfb71f2ce1d45cf3d977b603c2b34f726e0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvbo8a.afm",
+      "bytes": 17800,
+      "sha256": "e2870c6e77d663177e621a736d63c34730dd7240512251073d97c03911626994",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvbo8an.afm",
+      "bytes": 17765,
+      "sha256": "70e01e8564146cb02d7e17168d381973c68bbcaa3f716a26d0976a98a0cfb13a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvl8a.afm",
+      "bytes": 16072,
+      "sha256": "413a8953871556d6ef661a865c500c44dc99c6526d9aae8713a5086e1eaf2d81",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvlo8a.afm",
+      "bytes": 16174,
+      "sha256": "7c011dd86450cda9a79dd070e0045690934a2018265b6e09be8e306435153d18",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvr8a.afm",
+      "bytes": 18451,
+      "sha256": "ec6ea0364d74cec6ffc24436aa8bff4ae20cb6ca4d69f006a69150f55fbb166a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvr8an.afm",
+      "bytes": 18393,
+      "sha256": "f530964604720a0a70a4a885f7c8f5d21abd9878dd1afd3d694f7a99c81fc769",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvro8a.afm",
+      "bytes": 18531,
+      "sha256": "f5e5d6f2db093bef22c3df0709df47eec21b1b97777d0fa2939f975d73249bef",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/phvro8an.afm",
+      "bytes": 18489,
+      "sha256": "460af853e80286031c594e55c853303e0da01970790fd0e1adbb58b566fb8d21",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncb8a.afm",
+      "bytes": 16500,
+      "sha256": "6407d847a8036684e33f0d57f4229700a85d199ce04a50df766c4520068d30fd",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncbi8a.afm",
+      "bytes": 18098,
+      "sha256": "87a8085a114a8776a250cb80e103c228ddfd8dad422560e76a0cfeacb2567890",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncr8a.afm",
+      "bytes": 17189,
+      "sha256": "c2aa61bffefea08103ac687342ca720de143d3b8f302ce6e6926cb9eb679dead",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pncri8a.afm",
+      "bytes": 17456,
+      "sha256": "9976445aafa94e0b0e1bcfcdc79179d83305f1107add1cc054e9c7dd071158fa",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplb8a.afm",
+      "bytes": 16096,
+      "sha256": "61df0cfaa5c47a6c95b01b78398eef298aabed873f29f4676f6139d398a3dd3b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplbi8a.afm",
+      "bytes": 16251,
+      "sha256": "04b45e5224923afa22693ca62bc870a96091da7757251d94d85014d982958603",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplr8a.afm",
+      "bytes": 16197,
+      "sha256": "39d33b9a9fbe1df1567e9f48c28946a2f8ae1e986801334597cf0e1b7877530f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pplri8a.afm",
+      "bytes": 16172,
+      "sha256": "9f4fefa3e242f2fa0ae85287be7642ca0cecbd37cd965411c9adcbd1db534596",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/psyr.afm",
+      "bytes": 9853,
+      "sha256": "1c8b6906a0a9a4629a2da2d47628d3677d63cd4575dd4544a2161550f4a4d4a7",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmb8a.afm",
+      "bytes": 18631,
+      "sha256": "b5df1520d0f0ffbfd7dd4e9d1cb70dc53fbfdb053f0aa6934a7b525baf7af8cf",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmbi8a.afm",
+      "bytes": 18718,
+      "sha256": "65b2b51f6f31c48c1c6464aa191ea256da4cad9d792d137539f54ba6dd72899f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmr8a.afm",
+      "bytes": 18590,
+      "sha256": "9700e22c5f11909e3a468545634a8443d27f879e1c40717a302471dde84b1bf6",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/ptmri8a.afm",
+      "bytes": 18716,
+      "sha256": "ad8373d3ce043ee0a075b65c22fb9a5c0efba33839b0e8261998f0a45cc318a4",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putb8a.afm",
+      "bytes": 22537,
+      "sha256": "449bae873afe772a1c28c5f8a600bd5282b722f7b66e75ad93be0ecb1ed904f9",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putbi8a.afm",
+      "bytes": 22948,
+      "sha256": "d60c909275eaa62566c8aadc46199e9d226b3f4928b7987ce07996b434372de8",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putr8a.afm",
+      "bytes": 23177,
+      "sha256": "63fbfded924a44f7cf236705b85b2d06d07145b01fdc02be84760356cc0cb5d0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/putri8a.afm",
+      "bytes": 22899,
+      "sha256": "1f1bb681256957ddf328ee9e72ab59489647432135c61c1c52787e449f1360fa",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pzcmi8a.afm",
+      "bytes": 16730,
+      "sha256": "061ccb72877cfa755dd8c59e66c3bf1a86545eca383a1424b486767bbb71258f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm/pzdr.afm",
+      "bytes": 9689,
+      "sha256": "6bbf8d8124d21326a4b6cf3887e8572eb6d1af1985871aff351e756e138b6584",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Legacy AFM metrics",
+      "license": "需逐项确认",
+      "commercial": "未作全部免费商用结论",
+      "evidence": "文件内版权头；pdfcorefonts 的许可不能直接套用此目录",
+      "usage": "Matplotlib PS/AFM 兼容后端；尚未证明删除后全部相关路径无回归"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Courier-Bold.afm",
+      "bytes": 15675,
+      "sha256": "ad0150d4bedcc8877742bf94251fcec13e348dd599d4603f679d92027d1e6e99",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Courier-BoldOblique.afm",
+      "bytes": 15741,
+      "sha256": "cb82e69ef5f6d421e8f404fe00bb0d993425aae79725331d0ebf847e94e97e92",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Courier-Oblique.afm",
+      "bytes": 15783,
+      "sha256": "b27103b2a2ef6030c110626597e2ab47bb8279075a039ab9170facb0aa1f70e1",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Courier.afm",
+      "bytes": 15677,
+      "sha256": "521e0d7c7521efd4be78a5a9c5398e4c67d0771e396115b0346bc4ef74ada53d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Helvetica-Bold.afm",
+      "bytes": 72096,
+      "sha256": "b880d96baf56d0cc059f258f60b4d764ef49b555ab9db294b959c0016dee41f2",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Helvetica-BoldOblique.afm",
+      "bytes": 72192,
+      "sha256": "69984a35ca26973a39f261cf83e0d367ea2e6517c590b0b030d4d4a219d9c269",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Helvetica-Oblique.afm",
+      "bytes": 77443,
+      "sha256": "b4609b71b660a392ac09df35060271a876c2ce66617dd83bf826f742bb9d9721",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Helvetica.afm",
+      "bytes": 77343,
+      "sha256": "da33f1870474c8e68bfe3e2353ff107ab6c6eea1f9836ce2aaf1e1a07b17982f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Symbol.afm",
+      "bytes": 9953,
+      "sha256": "3d2128a820375a10de9bc8bf6cfb15ded482c01ca0f95cc0b3277f37ec8bde66",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Times-Bold.afm",
+      "bytes": 66839,
+      "sha256": "b4a000ed85cb22c6cdd985aa0fd3f6f78ed5079b7c6860dc4f0234e0d0e3c522",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Times-BoldItalic.afm",
+      "bytes": 62026,
+      "sha256": "93c4744ba955215de02c4aae0b777133442ada2f7ab5a2af30a040b792b3c55d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Times-Italic.afm",
+      "bytes": 68995,
+      "sha256": "ed37fa2e6a67b5b17dfd47f36fc7e90df32891a4408860dbc8d4cbbe9959e242",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/Times-Roman.afm",
+      "bytes": 62879,
+      "sha256": "768e1cabea085d489a63da3e80b96bc5abf0ec98d3073c9b4d6ba76e7bccba64",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/pdfcorefonts/ZapfDingbats.afm",
+      "bytes": 9752,
+      "sha256": "a32565c90afd1b57a7008fc567b78d95cf1c22adff5e086094d666d88b039859",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "PDF core AFM metrics",
+      "license": "Adobe AFM permission",
+      "commercial": "有条件允许；必须伴随 readme.txt，不能推导获得对应完整字体许可",
+      "evidence": "matplotlib/mpl-data/fonts/pdfcorefonts/readme.txt",
+      "usage": "Matplotlib PDF 核心字体度量，不是字体轮廓文件"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmb10.ttf",
+      "bytes": 25680,
+      "sha256": "074497b50c43ea57597181591f9893d38fc12a87e95104f5657fc2481f61a23a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmex10.ttf",
+      "bytes": 21092,
+      "sha256": "af28f0c170723ac776a71bfa595aca09e98d15ae5c3d54ce19afd5619c96a905",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf",
+      "bytes": 32560,
+      "sha256": "3092965b8811fd6a6765799664845181fc1dd1330b937f915808c485d316234d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmr10.ttf",
+      "bytes": 26348,
+      "sha256": "4dd9761b058c009db9b2145f55ee6617d093c273dd3d6c5b3e43ff6110fa9bf6",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmss10.ttf",
+      "bytes": 20376,
+      "sha256": "7df91a83d05b2e471ec638cb0b435a360a3c792b09fc42a7da67e91f2e79115a",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmsy10.ttf",
+      "bytes": 29396,
+      "sha256": "bb226ed932f3f100cd0e52f5e4912ee553b41b69e7bfdb8d3854db0eb6605232",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/cmtt10.ttf",
+      "bytes": 28136,
+      "sha256": "6211f09ae93599991afda970c24669dad1a77e253d915624fbf212f702f071d7",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "Computer Modern TTF",
+      "license": "BaKoMa",
+      "commercial": "有条件允许；保留版权及许可声明",
+      "evidence": "matplotlib-3.6.2.dist-info/LICENSE_BAKOMA",
+      "usage": "Matplotlib 数学字体集"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf",
+      "bytes": 704128,
+      "sha256": "b184b89e3c1075f22f6b71575b6fc20d4972b3cfd3b23322ca6fd596dcaef167",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-BoldOblique.ttf",
+      "bytes": 641720,
+      "sha256": "6edf0283160186af451cbee71e7b845f2e4cabf264bb992ce668c83c25465e6f",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Oblique.ttf",
+      "bytes": 633840,
+      "sha256": "ccdf74b350f11fd3dd5774de50e5e6346a1a5da1f5b7d5fb83590665e97a5213",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf",
+      "bytes": 756072,
+      "sha256": "3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansDisplay.ttf",
+      "bytes": 25712,
+      "sha256": "82099dcfba5aa868cdfc27451989525fe3292f737fb3c9e0328ce9cef59652f6",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Bold.ttf",
+      "bytes": 331536,
+      "sha256": "baada9a5172fe20886251aff0433fc38461912d5daf07287e7bee56620a8da96",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-BoldOblique.ttf",
+      "bytes": 253116,
+      "sha256": "a69081c15c76c827e0a27a5a7f5c74b6135c843499955495ffa8c20d3a98288b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Oblique.ttf",
+      "bytes": 251472,
+      "sha256": "28052813f7a709fc89f52d192dc995ef4f0fdc5c3d7b73a49d6849b1916d0cd0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono.ttf",
+      "bytes": 340240,
+      "sha256": "602ec86b8948cfcd956482fe64f94c36c867770149ef2f791d4613f443bcecb3",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Bold.ttf",
+      "bytes": 355692,
+      "sha256": "c3753f2ed6bc673f15846dc45addbeb3b9c872f32fb18fd53a21f1bef1ed7676",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-BoldItalic.ttf",
+      "bytes": 347064,
+      "sha256": "d93efec7a9d2e826768d1a2ee95b95870e15e29599a84f3484af1de1cec2e181",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Italic.ttf",
+      "bytes": 345612,
+      "sha256": "3e7994fbc54fa10ce3352a42d548fadd7d9cadb69cb1109bc9d960f6dac57f04",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif.ttf",
+      "bytes": 379740,
+      "sha256": "107244956e9962b9e96faccdc551825e0ae0898ae13737133e1b921a2fd35ffa",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerifDisplay.ttf",
+      "bytes": 14300,
+      "sha256": "2914f32e47c777c27be5677afae7db4de79f9e45de6fc9097d9949c23c14f7d5",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "DejaVu",
+      "license": "Bitstream Vera / Arev notices",
+      "commercial": "有条件允许随软件分发，不可单卖字体",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+      "usage": "训练频谱图的字体查找与默认渲染"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneral.ttf",
+      "bytes": 448228,
+      "sha256": "167378031e2dddc6216d67819c9260e9a06ffc4c478e4e23cb98a6fd44b183c2",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBol.ttf",
+      "bytes": 237360,
+      "sha256": "e8533dc7083fa346bda1933d60ea4a83b67d0945bceaf1b3541f82b4a0e2c6a0",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBolIta.ttf",
+      "bytes": 181152,
+      "sha256": "98788fd4ba48dfbb2bd026c0e20a247a8b06c7372879628b7a6bb0d5bb09736c",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralItalic.ttf",
+      "bytes": 175040,
+      "sha256": "6cfcb333d22b7c3c623bdfd40174f14c85c3d6731ca6166c1edc80140eae8527",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUni.ttf",
+      "bytes": 59108,
+      "sha256": "5256f7e021335ac4854d180f0e8bf198964ec2fc820176276e16aabc6537bb57",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBol.ttf",
+      "bytes": 30512,
+      "sha256": "5d106a5b78d1ffc30174553439b86257bfa45f088120cb3b4150a51dc4f9b60b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBolIta.ttf",
+      "bytes": 41272,
+      "sha256": "a5bdb60e76c37f6c90aa2ce8b5cdf0043a85182fe0dbb61c086262bc7f7e2def",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniIta.ttf",
+      "bytes": 46752,
+      "sha256": "04cafda56881bf660865dab4e17e1cdc280be8d3cb50fae5eb8695d4de30f548",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFiveSymReg.ttf",
+      "bytes": 13656,
+      "sha256": "c18b87d60614a42baeb2a22d447e647fda7fb3a9940fef57dcbe51bd1b4a4b1b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymBol.ttf",
+      "bytes": 12228,
+      "sha256": "c8d76f8d4a129ac64250b983ed256af4769b9dd1bd3f874f85ba0bd49a407f4b",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymReg.ttf",
+      "bytes": 15972,
+      "sha256": "fbdc553182f8ff5adc3bc16208aac27d1e0f69298ab40e3675d2c6ab0b5e8b5c",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymBol.ttf",
+      "bytes": 12556,
+      "sha256": "7187b1ca8f2b65c76a325a5af5f345e5ad88a172d44d9b88be1d090f5429d22e",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymReg.ttf",
+      "bytes": 19760,
+      "sha256": "d256c7ce99ddcc998ef12e369a5921b33e4d6ef24b402687e4c71ced06510f37",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymBol.ttf",
+      "bytes": 12192,
+      "sha256": "dde05cf95b586e1414dc19f18b2a5f3ba780cc4bbc05d0efb4825215b912da86",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymReg.ttf",
+      "bytes": 15836,
+      "sha256": "5c548a0a9b5b11233cbb11ed5054805767326f0c614a377c756541caae9fdf0d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymBol.ttf",
+      "bytes": 12116,
+      "sha256": "3140981eb03466a162484fcf8c81a525980cbafefd694810a84ec3b6ede4ba8d",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    },
+    {
+      "path": "engine/runtime/Lib/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymReg.ttf",
+      "bytes": 15704,
+      "sha256": "fec7710ee130043b400e9bbd0b221743157bb08a80d93655042522523ab95029",
+      "decision": "保留：依赖资源或待确认项，不因主界面没有引用就删除",
+      "group": "STIX",
+      "license": "SIL OFL 1.1",
+      "commercial": "有条件允许；保留转换说明、版权及许可证",
+      "evidence": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+      "usage": "Matplotlib 数学字体集与回退"
+    }
+  ],
+  "font_groups": {
+    "KaTeX (Gradio 4.44.1)": 59,
+    "Legacy AFM metrics": 46,
+    "PDF core AFM metrics": 14,
+    "Computer Modern TTF": 7,
+    "DejaVu": 14,
+    "STIX": 17
+  }
+}

@@ -11,6 +11,7 @@ from studio import Studio, digest, uid
 
 
 class CoreTests(unittest.TestCase):
+    # 中文维护：创建本测试独占的临时数据与夹具，不使用用户模型或作品。
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
@@ -31,9 +32,11 @@ class CoreTests(unittest.TestCase):
             self.p['segments'].append(seg)
         self.s.save('projects',self.p)
 
+    # 中文维护：释放测试资源并清理本测试创建的临时目录。
     def tearDown(self):
         self.temp.cleanup()
 
+    # 中文维护：用合成音频验证实际时长、字幕、相对路径和交付包。
     def test_export_sample_timeline_and_portability(self):
         p=self.s.export(self.p)
         f=Path(p['exports'][-1]['folder'])
@@ -47,11 +50,13 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(Path(m['segments'][0]['audio']).is_absolute())
         self.assertTrue((f/'delivery.zip').is_file())
 
+    # 中文维护：确认仅改字幕仍可复用配音缓存。
     def test_display_edit_reuses_audio(self):
         p=self.s.edit_segment(self.p['id'],self.p['segments'][0]['id'],{'display':'q³ = 3/2'})
         self.assertTrue(self.s.current(p,p['segments'][0]))
         self.assertTrue(p['dirty'])
 
+    # 中文维护：确认改朗读文本只使对应片段缓存失效。
     def test_spoken_edit_invalidates_only_one(self):
         p=self.s.edit_segment(self.p['id'],self.p['segments'][0]['id'],{'spoken':'新朗读'})
         self.assertFalse(self.s.current(p,p['segments'][0]))
@@ -59,29 +64,35 @@ class CoreTests(unittest.TestCase):
         j=self.s.enqueue(p['id'])
         self.assertEqual(j['total'],1)
 
+    # 中文维护：确认语速变化使音频缓存全部失效。
     def test_speed_invalidates_all(self):
         p=self.s.options(self.p['id'],{'speed':1.2,'gap_ms':180})
         self.assertFalse(any(self.s.current(p,s) for s in p['segments']))
 
+    # 中文维护：确认停顿变化只需重合成，不重配音。
     def test_gap_reuses_audio(self):
         p=self.s.options(self.p['id'],{'speed':1.,'gap_ms':500})
         self.assertTrue(all(self.s.current(p,s) for s in p['segments']))
 
+    # 中文维护：确认运行中禁止修改项目或重复提交任务。
     def test_busy_prevents_edit_and_duplicate_job(self):
         self.s.enqueue(self.p['id'])
         with self.assertRaises(ValueError): self.s.enqueue(self.p['id'])
         with self.assertRaises(ValueError): self.s.edit_segment(self.p['id'],self.p['segments'][0]['id'],{'spoken':'修改'})
 
+    # 中文维护：确认取消任务后可重新排队。
     def test_cancel_and_retry(self):
         j=self.s.enqueue(self.p['id'])
         self.assertEqual(self.s.cancel(j['id'])['state'],'cancelled')
         self.assertEqual(self.s.retry(j['id'])['state'],'queued')
 
+    # 中文维护：确认重启明确标记未完成任务而非丢失状态。
     def test_restart_marks_interrupted(self):
         j=self.s.enqueue(self.p['id'])
         s2=Studio(self.s.root)
         self.assertEqual(s2.get('jobs',j['id'])['state'],'interrupted')
 
+    # 中文维护：确认新导出版本不覆盖旧音频。
     def test_export_does_not_overwrite(self):
         p=self.s.export(self.p)
         first=Path(p['exports'][0]['folder'])/'narration.wav'
@@ -90,14 +101,17 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(len(p['exports']),2)
         self.assertEqual(before,digest(first))
 
+    # 中文维护：确认下载文件名不能越过导出目录。
     def test_path_traversal_rejected(self):
         p=self.s.export(self.p)
         with self.assertRaises(ValueError): self.s.file(p['id'],p['exports'][0]['id'],'../../studio.sqlite')
 
+    # 中文维护：确认音频缺失时禁止合成不完整成品。
     def test_missing_audio_blocks_export(self):
         Path(self.p['segments'][0]['audio']['path']).unlink()
         with self.assertRaises(ValueError): self.s.export(self.p)
 
+    # 中文维护：确认状态及写接口校验会话、来源和主机。
     def test_http_auth_origin_host(self):
         from fastapi.testclient import TestClient
         from server import make_app
@@ -109,6 +123,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(client.get('/api/state',headers={'Host':'evil.test'}).status_code,403)
         self.assertEqual(client.post('/api/projects',json={}).status_code,403)
 
+    # 中文维护：确认导入保留原文件并要求人工校对。
     def test_training_import_preserves_original_and_requires_review(self):
         from training import import_dataset, update_dataset
         labels = self.root / 'samples.list'
@@ -122,6 +137,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(digest(labels), before)
         self.assertEqual(ds2['revision'],2)
 
+    # 中文维护：确认未授权素材和越界参数不能进入训练。
     def test_training_rejects_untrusted_material_and_bad_params(self):
         from training import import_dataset, update_dataset
         with self.assertRaises(ValueError): import_dataset(self.s, {'authorized':False})
@@ -129,6 +145,7 @@ class CoreTests(unittest.TestCase):
         self.s.save('datasets',ds)
         with self.assertRaises(ValueError): update_dataset(self.s,ds['id'],{'params':{'gpt_epochs':999,'sovits_epochs':8,'batch_size':2}})
 
+    # 中文维护：确认缺文件和未校对状态会阻止训练。
     def test_training_plan_reports_missing_and_unreviewed(self):
         from training import plan, enqueue
         setting=self.s.settings()
@@ -143,12 +160,14 @@ class CoreTests(unittest.TestCase):
         self.assertGreater(len(report['missing']),0)
         with self.assertRaises(ValueError): enqueue(self.s,ds['id'],{'confirmed':True,'revision':1})
 
+    # 中文维护：确认检查点目录提前创建且重复调用安全。
     def test_training_checkpoint_directory_exists_before_save(self):
         from training import initialize_checkpoint_directory
         path=initialize_checkpoint_directory(self.root/'new-experiment')
         self.assertTrue(path.is_dir())
         self.assertEqual(initialize_checkpoint_directory(path.parent),path)
 
+    # 中文维护：确认上游持久数据加载器不会收到零 worker。
     def test_persistent_dataloader_has_nonzero_workers(self):
         from training import compatible_loader_workers
         self.assertEqual(compatible_loader_workers(0),1)

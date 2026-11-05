@@ -19,6 +19,7 @@ from pathlib import Path
 REPO='nianfangomo-bit/voice-studio-local'
 
 
+# 中文维护：核对所有分卷、版本和合并摘要，防止漏卷或混用不同版本。
 def validate_package(directory, manifest):
     """Validate the full set before any authenticated network write."""
     version=manifest.get('version','')
@@ -47,10 +48,12 @@ def validate_package(directory, manifest):
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
+    # 中文维护：拒绝自动重定向，避免启动令牌或发布凭据被转发。
     def redirect_request(self,*args,**kwargs):
         raise RuntimeError('Unexpected GitHub redirect; refusing to forward authentication')
 
 
+# 中文维护：依据大小、上传状态和内容摘要判断是否可安全复用远端附件。
 def validate_existing_asset(path, asset):
     if asset.get('state')!='uploaded' or asset.get('size')!=path.stat().st_size:
         raise RuntimeError('Existing asset is incomplete or has a different size: '+path.name)
@@ -62,8 +65,10 @@ def validate_existing_asset(path, asset):
 
 
 class ProgressFile:
+    # 中文维护：打开待上传文件并初始化限频进度记录。
     def __init__(self,path):
         self.path=path;self.stream=path.open('rb');self.size=path.stat().st_size;self.done=0;self.last=0
+    # 中文维护：分块读取上传数据并报告实际字节进度。
     def read(self,size=-1):
         data=self.stream.read(max(size,1024**2));self.done+=len(data)
         now=time.time()
@@ -71,9 +76,11 @@ class ProgressFile:
             print(json.dumps({'asset':self.path.name,'uploaded_bytes':self.done,'total_bytes':self.size}),flush=True)
             self.last=now
         return data
+    # 中文维护：释放上传文件句柄。
     def close(self):self.stream.close()
 
 
+# 中文维护：校验本地产物并认证目标仓库，在明确参数控制下上传发行附件。
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('directory',type=Path)
@@ -95,6 +102,7 @@ def main():
     if not token:raise RuntimeError('GitHub authentication is not available')
     opener=urllib.request.build_opener(NoRedirect)
 
+    # 中文维护：构造认证 API 请求，区分 JSON 与二进制载荷并限制重定向。
     def request(path,method='GET',data=None,content_type='application/json',size=None):
         url=path if path.startswith('https://') else 'https://api.github.com'+path
         if urllib.parse.urlparse(url).hostname not in {'api.github.com','uploads.github.com'}:

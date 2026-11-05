@@ -28,6 +28,7 @@ class Segment:
     end_ms: int = 0
 
 
+# 中文维护：将相对路径解析到指定基准，保留兼容命令行工作流。
 def resolve_path(value: str | Path, base: Path = ROOT) -> Path:
     path = Path(value)
     if not path.is_absolute():
@@ -35,12 +36,14 @@ def resolve_path(value: str | Path, base: Path = ROOT) -> Path:
     return path
 
 
+# 中文维护：读取 UTF-8 配置文件并返回参数字典。
 def load_config(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         config = json.load(f)
     return config
 
 
+# 中文维护：保留标点并按段落与句末切分，记录段落间隔标识。
 def split_script(text: str) -> list[Segment]:
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     segments: list[Segment] = []
@@ -57,6 +60,7 @@ def split_script(text: str) -> list[Segment]:
     return segments
 
 
+# 中文维护：调用旧 TTS HTTP 服务并验证返回 WAV，JSON 错误不能当作音频。
 def post_tts(api_url: str, payload: dict[str, Any], out_path: Path) -> None:
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
@@ -86,6 +90,7 @@ def post_tts(api_url: str, payload: dict[str, Any], out_path: Path) -> None:
     ensure_wav(out_path)
 
 
+# 中文维护：尝试解析 WAV 头部，格式错误时给出明确失败。
 def ensure_wav(path: Path) -> None:
     try:
         with wave.open(str(path), "rb") as wav:
@@ -94,6 +99,7 @@ def ensure_wav(path: Path) -> None:
         raise RuntimeError(f"{path.name} is not a valid wav file. Check media_type and streaming_mode.") from exc
 
 
+# 中文维护：从整数 PCM 采样计算归一化 RMS 和峰值，兼容不同采样宽度。
 def _pcm_rms_and_peak(frames: bytes, sample_width: int) -> tuple[float, float]:
     """Return normalized RMS and peak for integer PCM samples."""
     if sample_width not in (1, 2, 3, 4):
@@ -117,6 +123,7 @@ def _pcm_rms_and_peak(frames: bytes, sample_width: int) -> tuple[float, float]:
     return math.sqrt(square_sum / sample_count) / full_scale, peak / full_scale
 
 
+# 中文维护：给出保守的异常短音频门槛，不将此启发式当作漏读识别。
 def minimum_plausible_duration_ms(text: str) -> int:
     # Deliberately conservative: reject tiny placeholder responses without
     # penalising a naturally fast voice or short interjections.
@@ -124,6 +131,7 @@ def minimum_plausible_duration_ms(text: str) -> int:
     return max(450, min(2400, spoken_chars * 55))
 
 
+# 中文维护：检查 PCM 参数、时长和近静音，返回实际测量值。
 def validate_segment_wav(path: Path, text: str) -> dict[str, float | int]:
     try:
         with wave.open(str(path), "rb") as wav:
@@ -153,6 +161,7 @@ def validate_segment_wav(path: Path, text: str) -> dict[str, float | int]:
     return {"duration_ms": duration_ms, "rms": rms, "peak": peak}
 
 
+# 中文维护：使用临时文件有限重试，仅将验证通过的音频替换为目标结果。
 def generate_segment_with_retry(
     api_url: str,
     payload: dict[str, Any],
@@ -188,6 +197,7 @@ def generate_segment_with_retry(
     raise RuntimeError(f"第 {segment.index} 句生成失败：{segment.text}（{last_error}）")
 
 
+# 中文维护：依据实际采样帧数计算毫秒时长。
 def wav_duration_ms(path: Path) -> int:
     with wave.open(str(path), "rb") as wav:
         frames = wav.getnframes()
@@ -195,6 +205,7 @@ def wav_duration_ms(path: Path) -> int:
     return round(frames * 1000 / rate)
 
 
+# 中文维护：按目标 PCM 格式创建指定时长的零采样间隔。
 def silence_frames(params: wave._wave_params, duration_ms: int) -> bytes:
     if duration_ms <= 0:
         return b""
@@ -202,6 +213,7 @@ def silence_frames(params: wave._wave_params, duration_ms: int) -> bytes:
     return b"\x00" * frame_count * params.nchannels * params.sampwidth
 
 
+# 中文维护：仅对调用者指定的任务音频统一采样率与声道，经临时文件替换。
 def normalize_wav(path: Path) -> None:
     temp_path = path.with_name(path.stem + ".__normalized.wav")
 
@@ -225,6 +237,7 @@ def normalize_wav(path: Path) -> None:
 
 
 
+# 中文维护：统一片段格式后插入停顿并合并，回填每段真实起止时间。
 def combine_wavs(segments: list[Segment], output_path: Path, sentence_gap_ms: int, paragraph_gap_ms: int) -> None:
     if not segments:
         raise RuntimeError("No segments to combine.")
@@ -267,6 +280,7 @@ def combine_wavs(segments: list[Segment], output_path: Path, sentence_gap_ms: in
             segment.end_ms = current_ms
 
 
+# 中文维护：将毫秒转换为 SRT 的时分秒与三位毫秒格式。
 def fmt_srt_time(ms: int) -> str:
     hours = ms // 3_600_000
     ms %= 3_600_000
@@ -277,6 +291,7 @@ def fmt_srt_time(ms: int) -> str:
     return f"{hours:02}:{minutes:02}:{seconds:02},{millis:03}"
 
 
+# 中文维护：按已计算时间与文本写出 UTF-8 句级字幕。
 def write_srt(segments: list[Segment], path: Path) -> None:
     blocks = []
     for segment in segments:
@@ -288,6 +303,7 @@ def write_srt(segments: list[Segment], path: Path) -> None:
     path.write_text("\n".join(blocks), encoding="utf-8")
 
 
+# 中文维护：写出旧命令行工作流的音频、字幕和分段清单。
 def write_manifest(segments: list[Segment], path: Path, full_wav: Path, srt_path: Path) -> None:
     data = {
         "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -307,10 +323,12 @@ def write_manifest(segments: list[Segment], path: Path, full_wav: Path, srt_path
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+# 中文维护：为旧 API 解析参考音频本机路径。
 def resolve_audio_path_for_api(value: str) -> str:
     return str(resolve_path(value))
 
 
+# 中文维护：组合参考音频、语言和生成参数，兼容原工作流配置。
 def build_payload(config: dict[str, Any], text: str) -> dict[str, Any]:
     aux_ref_audio_paths = config.get("aux_ref_audio_paths", [])
     payload = {
@@ -325,6 +343,7 @@ def build_payload(config: dict[str, Any], text: str) -> dict[str, Any]:
     return payload
 
 
+# 中文维护：命令行短句连通性检查，并非工作台暴露的 HTTP 路由。
 def check_api(config: dict[str, Any]) -> int:
     api_url = config["api_url"]
     payload = build_payload(config, "接口测试。")
@@ -338,6 +357,7 @@ def check_api(config: dict[str, Any]) -> int:
     return 0
 
 
+# 中文维护：执行旧命令行文案配音闭环；保留供既有用户和外部流程调用。
 def run(config_path: Path, only_check_api: bool = False) -> int:
     config = load_config(config_path)
     if only_check_api:
@@ -407,6 +427,7 @@ def run(config_path: Path, only_check_api: bool = False) -> int:
     print(f"Parts: {segment_dir}")
     return 0
 
+# 中文维护：解析旧命令行参数并把失败转换为非零退出码。
 def main() -> int:
     parser = argparse.ArgumentParser(description="Script text to GPT-SoVITS wav segments, full wav, and SRT.")
     parser.add_argument("--config", default=str(ROOT / "config.json"), help="Path to config.json")

@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {Training} from './Training';
 import {preferredVoiceId} from './voice-selection.mjs';
 
+// 统一访问已认证的本机 API；有数据时提交 JSON，失败保留服务端中文提示。
 async function api(path, data) {
   const res = await fetch('/api/' + path, data === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
   const body = await res.json();
@@ -11,25 +12,32 @@ async function api(path, data) {
 }
 const statuses = {queued:'等待中', running:'处理中', cancelling:'停止中', cancelled:'已取消', done:'完成', failed:'失败', interrupted:'已中断'};
 const busyStates = ['queued','running','cancelling'];
+// 复用表单标签结构，保持输入项排版和点击标签聚焦的语义。
 function Field({label,children}) {return <label className="field"><span>{label}</span>{children}</label>}
+// 工作台入口：轮询真实任务状态，保留用户当前项目和页面选择。
 function App() {
   const [state,setState]=useState(null), [page,setPage]=useState('配音工作台'), [pid,setPid]=useState('');
   const [error,setError]=useState(''), [notice,setNotice]=useState(''),[pending,setPending]=useState(false),[log,setLog]=useState('');
   const [checks,setChecks]=useState([]);
   const initialPage=useRef(false);
+  // 仅首次加载决定引导页；后续状态刷新不应把用户带离当前页面。
   useEffect(()=>{if(state&&!initialPage.current){initialPage.current=true;if(!state.voices.length)setPage('训练工作台')}},[state]);
+  // 拉取服务端快照，不从前端计时推测任务进度。
   const refresh=async()=>setState(await api('state'));
+  // 交换一次性启动地址中的令牌后清除地址栏令牌；卸载时清理轮询定时器。
   useEffect(()=>{let mounted=true; (async()=>{
     const token=location.hash.slice(1);
     if(token){history.replaceState(null,'','/'); const r=await fetch('/connect',{method:'POST',headers:{'x-start-token':token}}); if(!r.ok) throw Error('启动凭据无效，请重新打开软件');}
     if(mounted) await refresh();
   })().catch(e=>setError(e.message)); const id=setInterval(()=>refresh().catch(e=>setError(e.message)),2000); return()=>{mounted=false;clearInterval(id)}},[]);
+  // 包装异步按钮操作：锁定提交、展示错误，并在成功后刷新真实状态。
   const act=async(fn,message='已保存')=>{setPending(true);setError('');setNotice('');try{const result=await fn();await refresh();setNotice(message);return result}catch(e){setError(e.message)}finally{setPending(false)}};
   if(!state) return <main><h1>声线工作室</h1><p>{error || '正在读取本地项目…'}</p></main>;
   const project=state.projects.find(p=>p.id===pid)||state.projects[0];
   const working=project&&state.jobs.some(j=>j.project_id===project.id&&busyStates.includes(j.state));
   const nav=['配音工作台','训练工作台','我的声线','作品库'];
   const latestJob=project&&state.jobs.find(j=>j.project_id===project.id);
+  // 只提交所选生成模式；实际缓存判断和排队由后端负责。
   const generate=(mode,segment_id)=>act(()=>api(`projects/${project.id}/generate`,{mode,segment_id}),'任务已提交；完成片段会自动保存。');
   return <div className="shell"><aside><div className="brand"><b>声线<span>工作室</span></b><small>VOICE STUDIO / LOCAL</small></div><nav>{nav.map(n=><button key={n} className={page===n?'selected':''} onClick={()=>setPage(n)}>{n==='配音工作台'?'开始配音':n}</button>)}<details className="navmore"><summary>更多工具</summary>{['训练工作台','任务中心','环境设置'].map(n=><button key={n} className={page===n?'selected':''} onClick={()=>setPage(n)}>{n}{n==='任务中心'&&` · ${state.jobs.filter(j=>busyStates.includes(j.state)).length}`}</button>)}</details></nav><div className="privacy"><i/>录音与文案留在本机<small>声线训练一次，后续直接使用。</small></div></aside><main><header><div><small>你的声音，从这里开始</small><h1>{page==='配音工作台'?'开始配音':page}</h1></div><span className="badge">本地保存</span></header>
     {error&&<div role="alert" className="error">{error}<button onClick={()=>setError('')}>关闭</button></div>}
@@ -50,6 +58,7 @@ function App() {
     {page==='环境设置'&&<><Settings current={state.settings} pending={pending} submit={d=>act(()=>api('settings',d),'环境已保存；没有安装或修改任何依赖。')}/><section className="panel"><button disabled={pending} onClick={()=>act(async()=>setChecks(await api('check')),'检测完成')}>检查环境</button>{checks.map((c,i)=><p key={i} className={c.ok?'good':'bad'}>{c.ok?'✓':'!'} {c.name}：{c.detail}</p>)}</section></>}
   </main></div>
 }
+// 新建项目表单：默认只选已发布声线，创建后由项目固定声线快照。
 function NewProject({voices,pending,create}){
  const [name,N]=useState(''),[text,T]=useState(''),[voice,V]=useState(()=>preferredVoiceId(voices));
  const selected=voices.find(v=>v.id===voice);
@@ -60,12 +69,14 @@ function NewProject({voices,pending,create}){
  {selected&&<p className={selected.status==='published'?'muted':'bad'}>本次参考录音原文：{selected.prompt_text}{selected.status!=='published'?'（尚非已发布版本，请先试听）':''}</p>}
  <Field label="原始文案"><textarea required rows="5" value={text} onChange={e=>T(e.target.value)} placeholder="粘贴你的中文文案。系统按标点分段，保留原文。"/></Field><button className="primary" disabled={pending||!selected}>保存并分段</button></form>
 }
+// 显示最近一次不可变成品；存在未合成修改时明确标注为旧版。
 function ExportResult({project:p}) {
   const e=p.exports[p.exports.length-1];
   if(!e) return null;
   const base=`/api/projects/${p.id}/exports/${e.id}/`;
   return <section className={'panel result '+(p.dirty?'stale':'')}><div className="resultheading"><div><small>{p.dirty?'上一次成品 · 尚未包含当前修改':'音频与字幕已就绪'}</small><h2>试听一下，就可以导出了。</h2></div><span className="badge">第 {p.exports.length} 版</span></div><audio aria-label="完整配音试听" controls preload="metadata" src={base+'narration.wav'}/><div className="downloads"><a className="download primary" href={base+'narration.wav'} download="narration.wav">下载音频 WAV</a><a className="download" href={base+'subtitles.srt'} download="subtitles.srt">下载字幕 SRT</a><details><summary>更多导出</summary><div className="toolbar"><a href={base+'delivery.zip'} download="delivery.zip">音频、字幕与分段打包 ZIP</a><a href={base+'timeline.json'} download="timeline.json">剪辑时间线</a></div></details></div><p className="muted">SRT 是独立字幕文件，按每句实际音频时长生成。下载后可导入剪辑软件；不是逐字字幕，也不会自动把字幕烧录进视频。</p>{p.dirty&&<p className="bad">以上下载仍是旧版本。请先点击“更新音频与字幕”，再下载最新成品。</p>}</section>;
 }
+// 分开编辑朗读与字幕文本；未保存时禁止重做，旧音频仍可试听。
 function Segment({segment:s,index,projectId,disabled,save,redo}){
   const [spoken,S]=useState(s.spoken),[display,D]=useState(s.display);
   const changed=spoken!==s.spoken||display!==s.display;
@@ -73,7 +84,10 @@ function Segment({segment:s,index,projectId,disabled,save,redo}){
     {s.audio&&<audio aria-label={`第${index+1}句试听`} preload="metadata" controls src={`/api/projects/${projectId}/segments/${s.id}/audio?v=${s.audio.created}`}/>}
     <details className="sentenceedit"><summary>修改这一句{changed?' · 有未保存修改':''}</summary><div className="grid"><Field label="读出来的文字"><textarea aria-label={`第${index+1}段朗读`} disabled={disabled} value={spoken} onChange={e=>S(e.target.value)}/></Field><Field label="字幕上显示的文字"><textarea aria-label={`第${index+1}段字幕`} disabled={disabled} value={display} onChange={e=>D(e.target.value)}/></Field></div><p className="muted">例如：朗读“q 的三次方”，字幕显示“q³”。修改后先保存，再更新成品。</p><details><summary>查看原文与保留记录</summary><p>{s.original}</p><small>已保留 {s.history.length} 份历史音频。</small></details><div className="toolbar"><button disabled={disabled||!changed} onClick={()=>save({spoken,display})}>保存修改</button><button disabled={disabled||changed} onClick={redo}>只重做这一句</button></div></details></section>
 }
+// 编辑语速和停顿，不直接触发配音；后端校验范围并使相关成品失效。
 function Options({project:p,disabled,save}){const [speed,S]=useState(p.speed),[gap,G]=useState(p.gap_ms);return <details className="options"><summary>语速与停顿设置</summary><form className="toolbar" onSubmit={e=>{e.preventDefault();save({speed,gap_ms:gap})}}><Field label="语速（0.6～1.5）"><input type="number" min="0.6" max="1.5" step="0.05" value={speed} onChange={e=>S(e.target.value)}/></Field><Field label="句间停顿（毫秒）"><input type="number" min="0" max="3000" value={gap} onChange={e=>G(e.target.value)}/></Field><button disabled={disabled}>保存参数</button></form></details>}
+// 收集模型、参考录音和授权信息，要求用户明确确认可信来源。
 function VoiceForm({pending,submit}){return <form className="panel" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);submit({...Object.fromEntries(f),authorized:f.has('authorized'),trusted:f.has('trusted')})}}><h2>导入已有声线</h2><div className="grid">{[['name','声线名称','我的讲解声线'],['gpt','GPT 权重（.ckpt）','粘贴本机完整路径'],['sovits','SoVITS 权重（.pth）','粘贴本机完整路径'],['reference','参考录音（3～10 秒 PCM WAV）','粘贴本机完整路径']].map(([name,label,placeholder])=><Field key={name} label={label}><input name={name} required placeholder={placeholder}/></Field>)}</div><Field label="参考录音原文（必须与声音一致）"><textarea name="prompt_text" required rows="2"/></Field><Field label="授权来源说明"><input name="authorization" required placeholder="例如：本人录制，本人拥有使用权"/></Field><label className="check"><input type="checkbox" name="authorized" required/>我有权使用此录音和声线。</label><label className="check"><input type="checkbox" name="trusted" required/>这些模型来自可信来源，我理解未知权重可能包含不安全内容。</label><button className="primary" disabled={pending}>导入声线</button></form>}
+// 配置用户选择的本地引擎与旧工作流，保留原环境依赖。
 function Settings({current:s,pending,submit}){return <form className="panel" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);submit({...Object.fromEntries(f),trusted:f.has('trusted')})}}><h2>连接已有环境</h2><p>本版适配 v2Pro 整合包。不安装依赖，不改动旧项目配置。</p>{[['engine','GPT-SoVITS 整合包目录'],['legacy','旧配音工作流目录'],['ffmpeg','FFmpeg 可执行文件（留空自动检测）']].map(([key,label])=><Field key={key} label={label}><input name={key} defaultValue={s[key]||''} required={key!=='ffmpeg'}/></Field>)}<label className="check"><input type="checkbox" name="trusted" required/>我确认这些本机程序可信，允许软件调用。</label><button className="primary" disabled={pending}>检查路径并保存</button></form>}
 createRoot(document.getElementById('root')).render(<App/>);

@@ -3,6 +3,7 @@ import argparse, array, hashlib, json, math, subprocess, tempfile, wave
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('directory',type=Path);args=p.parse_args()
 root=args.directory.resolve();ffmpeg=root/'ffmpeg.exe';ffprobe=root/'ffprobe.exe'
+# 中文维护：限时运行音频工具测试命令，非零退出保留错误信息。
 def run(cmd):
     result=subprocess.run([str(x) for x in cmd],capture_output=True,timeout=60)
     if result.returncode: raise RuntimeError(result.stderr.decode(errors='replace'))

@@ -1,24 +1,26 @@
 """Human-reviewed datasets and version-pinned training plans."""
 from __future__ import annotations
-import json
 import shutil
 import time
 import wave
 from pathlib import Path
-from studio import uid, digest, require_file, atomic_json
+from studio import uid, digest, require_file
 
 
+# 中文维护：补建上游训练脚本假设已存在的检查点目录，重复调用保持幂等。
 def initialize_checkpoint_directory(experiment):
     path = Path(experiment) / 'logs_s2_v2Pro'
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
+# 中文维护：上游固定启用持久 worker，将数量限制为至少一以避免 DataLoader 报错。
 def compatible_loader_workers(value):
     # This engine always enables persistent_workers, so zero is not valid.
     return max(1, int(value))
 
 
+# 中文维护：先验证全份标注，再复制录音到独立素材库，不修改原文件。
 def import_dataset(studio, data):
     if data.get('authorized') is not True:
         raise ValueError('请确认拥有素材使用授权。')
@@ -55,6 +57,7 @@ def import_dataset(studio, data):
     return studio.save('datasets', ds)
 
 
+# 中文维护：空闲时保存人工校对、排除状态或受限参数，每次变更递增修订号。
 def update_dataset(studio, did, data):
     with studio.lock:
         if studio.busy(did):
@@ -78,6 +81,7 @@ def update_dataset(studio, did, data):
         return studio.save('datasets', ds)
 
 
+# 中文维护：汇总可用素材、校对状态、基础模型和磁盘空间；推荐参数不是质量保证。
 def plan(studio, did):
     ds = studio.get('datasets', did)
     s = studio.settings()
@@ -108,6 +112,7 @@ def plan(studio, did):
             'time_note': '训练耗时取决于显卡、录音长度与轮数；按实际阶段和日志展示，不预测固定完成时间。'}
 
 
+# 中文维护：核实授权确认、修订号和计划就绪后保存训练快照并排队。
 def enqueue(studio, did, data):
     with studio.lock:
         report = plan(studio, did)
@@ -128,6 +133,7 @@ def enqueue(studio, did, data):
         return j
 
 
+# 中文维护：仅允许已用未见文本生成试听的候选声线发布，保留原模型版本。
 def publish(studio, vid):
     with studio.lock:
         voice = studio.get('voices', vid)

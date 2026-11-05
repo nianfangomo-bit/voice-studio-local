@@ -8,6 +8,7 @@ ASR_MODEL = 'tools/asr/models/speech_paraformer-large_asr_nat-zh-cn-16k-common-v
 MAX_UPLOAD = 512 * 1024**2
 
 
+# 中文维护：确认素材授权并创建空录音库，预填保守训练参数。
 def create(studio, data):
     if data.get('authorized') is not True:
         raise ValueError('请先确认录音使用授权。')
@@ -19,6 +20,7 @@ def create(studio, data):
         'created': time.time(), 'revision': 1, 'params': {'gpt_epochs': 5, 'sovits_epochs': 8, 'batch_size': 1}})
 
 
+# 中文维护：检查格式、容量和任务状态，返回服务器生成的独立保存路径。
 def upload_target(studio, did, filename):
     ds = studio.get('datasets', did)
     if 'recordings' not in ds or studio.busy(did):
@@ -36,6 +38,7 @@ def upload_target(studio, did, filename):
     return folder / (uid() + suffix), name
 
 
+# 中文维护：持锁登记已保存录音与哈希；并发冲突时保留文件但拒绝入库。
 def register_upload(studio, did, target, name):
     with studio.lock:
         ds = studio.get('datasets', did)
@@ -49,6 +52,7 @@ def register_upload(studio, did, target, name):
         return studio.save('datasets', ds)
 
 
+# 中文维护：检查离线转写组件与原始录音后创建 CPU 整理任务，不自动下载模型。
 def enqueue(studio, did):
     with studio.lock:
         ds = studio.get('datasets', did)

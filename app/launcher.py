@@ -16,10 +16,12 @@ sys.path.insert(0, str(ROOT))
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
+    # 中文维护：拒绝自动重定向，避免启动令牌或发布凭据被转发。
     def redirect_request(self, *args, **kwargs):
         return None
 
 
+# 中文维护：仅直连回环地址验证现有会话，拒绝代理和重定向转发启动凭据。
 def existing_session():
     """Only authenticate locally; never forward the startup secret to a proxy."""
     try:
@@ -39,6 +41,7 @@ def existing_session():
     return None
 
 
+# 中文维护：等待认证健康检查成功；超时只报错，不擅自杀死仍可能就绪的服务。
 def wait_for_service(process, timeout=30):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -51,6 +54,7 @@ def wait_for_service(process, timeout=30):
     return None, '工作台尚未就绪，可能仍在加载。请稍后重新双击启动；不要重复安装。已有内容保留。'
 
 
+# 中文维护：优先复用现有会话或随包 Python，选择空闲端口后启动工作台。
 def main():
     root = tk.Tk()
     root.withdraw()

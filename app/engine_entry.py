@@ -1,5 +1,4 @@
 """Fixed script allowlist for the external engine, launched only by training_worker."""
-import os
 import sys
 import runpy
 from pathlib import Path

@@ -15,6 +15,7 @@ public class Package { public string version; public string folder; public strin
 
 public static class OfflineInstaller {
     public static readonly string Source = AppDomain.CurrentDomain.BaseDirectory;
+    // 读取并严格校验版本、目录和分卷命名，不信任外部 JSON 中的路径。
     public static Package ReadPackage() {
         var serializer = new JavaScriptSerializer();
         var p = serializer.Deserialize<Package>(File.ReadAllText(Path.Combine(Source, "offline-package.json")));
@@ -34,10 +35,12 @@ public static class OfflineInstaller {
         }
         return p;
     }
+    // 流式计算 SHA-256，避免将大分卷整体载入内存。
     static string Hash(string path) {
         using(var stream = File.OpenRead(path)) using(var sha = SHA256.Create())
             return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
     }
+    // 逐卷核对存在性、大小与摘要；进度只反映已检查的分卷数。
     public static void Verify(Package p, Action<string,int> report) {
         for (int i=0; i<p.parts.Count; i++) {
             var part = p.parts[i]; var path=Path.Combine(Source, part.name);
@@ -48,6 +51,7 @@ public static class OfflineInstaller {
                 throw new Exception("校验不一致："+part.name+"。请重新下载该分卷，已有训练数据未改动。");
         }
     }
+    // 只安装到新目录；校验压缩路径与总大小，通过暂存目录完成后再提交安装结果。
     public static string Install(Package p, string destination, Action<string,int> report) {
         destination=Path.GetFullPath(destination.Trim());
         if(Directory.Exists(destination) || File.Exists(destination))
@@ -116,6 +120,7 @@ public static class OfflineInstaller {
         report("安装完成，可以开始整理录音和训练声线",100);
         return destination;
     }
+    // 提供验证、无人值守安装和交互向导入口；失败必须返回非零退出或明确提示。
     [STAThread] public static void Main(string[] args) {
         try {
             var package=ReadPackage();
@@ -132,6 +137,7 @@ public static class OfflineInstaller {
 
 public class InstallerForm : Form {
     Package package; TextBox path; Button install,browse,launch; Label status; ProgressBar progress; string installed;
+    // 构造安装向导：后台执行安装，界面线程更新实际进度；安装期间阻止退出。
     public InstallerForm(Package p) {
         package=p; Text="声线工作室 · 完整离线安装";ClientSize=new Size(620,340);
         FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;

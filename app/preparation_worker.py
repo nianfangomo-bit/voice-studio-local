@@ -12,6 +12,7 @@ from studio import atomic_json, digest, uid, HIDDEN
 from preparation import ASR_MODEL
 
 
+# 中文维护：计算采样峰值、RMS 与静音/削波比例，仅提供可复核告警，不生成主观分数。
 def audio_quality(samples):
     import numpy as np
     a = np.asarray(samples, dtype=np.float64)
@@ -30,6 +31,7 @@ def audio_quality(samples):
     return report
 
 
+# 中文维护：兼容上游短录音返回格式，最长十秒硬切并标记需人工检查的边界。
 def bounded_chunks(audio, slicer, sr=32000):
     """Vendor slicer has inconsistent return shape for short audio."""
     if len(audio) < sr * 5:
@@ -49,6 +51,7 @@ def bounded_chunks(audio, slicer, sr=32000):
                 yield part, int(start)+offset, forced
 
 
+# 中文维护：在 CPU 上离线转换、切分、转写并保存可校对片段，原录音保持不变。
 def main(request_path):
     req = json.loads(Path(request_path).read_text(encoding='utf-8'))
     folder = Path(req['job_dir'])
@@ -64,12 +67,14 @@ def main(request_path):
         kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
         kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
         handle = kernel.OpenProcess(0x100000, False, req['parent_pid'])
+        # 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。
         def watch():
             if handle:
                 kernel.WaitForSingleObject(handle, 0xFFFFFFFF)
                 subprocess.run(['taskkill', '/PID', str(os.getpid()), '/T', '/F'], creationflags=HIDDEN)
         threading.Thread(target=watch, daemon=True).start()
 
+    # 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。
     def progress(message):
         atomic_json(folder / 'progress.json', {'message': message, 'completed': complete,
             'rows': rows, 'quality_reports': reports})
@@ -77,13 +82,13 @@ def main(request_path):
     try:
         # Explicitly deny network access inside this worker, including model SDK
         # metadata checks. Missing assets produce errors instead of downloads.
+        # 中文维护：拒绝工作进程网络连接，缺失模型应明确失败而非隐式下载。
         def offline(*args, **kwargs):
             raise OSError('本地整理进程禁止联网；请检查离线模型是否完整。')
         socket.socket.connect = offline
         socket.create_connection = offline
         os.environ['CUDA_VISIBLE_DEVICES'] = ''
         os.environ['OMP_NUM_THREADS'] = '4'
-        import numpy as np
         import soundfile as sf
         sys.path.insert(0, str(engine / 'tools'))
         from slicer2 import Slicer

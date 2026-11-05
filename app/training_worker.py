@@ -12,6 +12,7 @@ from studio import ROOT, HIDDEN, atomic_json, digest
 from training import initialize_checkpoint_directory, compatible_loader_workers
 
 
+# 中文维护：在独立任务目录执行六阶段微调，持有 GPU 锁并保留日志、检查点和候选模型。
 def main(request_path):
     req = json.loads(Path(request_path).read_text(encoding='utf-8'))
     folder = Path(req['job_dir'])
@@ -21,6 +22,7 @@ def main(request_path):
     exp.mkdir(exist_ok=True)
     completed = 0
 
+    # 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。
     def progress(message):
         atomic_json(folder / 'progress.json', {'message': message, 'completed': completed})
 
@@ -36,6 +38,7 @@ def main(request_path):
         kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
         handle = kernel.OpenProcess(0x100000, False, req['parent_pid'])
         kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        # 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。
         def watch():
             if handle:
                 kernel.WaitForSingleObject(handle, 0xFFFFFFFF)
@@ -76,6 +79,7 @@ def main(request_path):
             s2config_path=str(engine / 'GPT_SoVITS/configs/s2v2Pro.json'))
         env['PATH'] = str(Path(s['ffmpeg']).parent) + os.pathsep + env['PATH']
 
+        # 中文维护：执行允许的上游训练阶段，记录真实日志；非零退出立即停止后续阶段。
         def run(stage, script, args=()):
             nonlocal completed
             progress(stage)

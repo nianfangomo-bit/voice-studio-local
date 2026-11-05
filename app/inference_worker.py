@@ -11,11 +11,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from studio import atomic_json, digest, load_legacy, HIDDEN
 
 
+# 中文维护：核验引擎、权重和参考音频指纹后持锁生成片段；验证通过才写入恢复记录。
 def main(request_path):
     request = json.loads(Path(request_path).read_text(encoding='utf-8'))
     folder = Path(request['job_dir'])
     results = []
 
+    # 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。
     def progress(message):
         atomic_json(folder / 'progress.json', {'message': message, 'results': results})
 
@@ -27,6 +29,7 @@ def main(request_path):
         kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
         handle = kernel.OpenProcess(0x100000, False, request['parent_pid'])
         kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        # 中文维护：监控所属主进程退出，结束本任务以避免遗留显卡或子进程占用。
         def watch():
             if handle:
                 kernel.WaitForSingleObject(handle, 0xFFFFFFFF)

@@ -9,11 +9,12 @@ import email
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from build_portable import inventory, APP_FILES
+from build_portable import inventory, APP_FILES, excluded_legacy_afm
 
 VERSION = json.loads((Path(__file__).resolve().parent/'package.json').read_text(encoding='utf-8'))['version']
 
 
+# 中文维护：按显式清单组装完整离线包，保留许可证、生成文件哈希且拒绝覆盖旧产物。
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine',type=Path,required=True)
@@ -29,6 +30,10 @@ def main():
     prefix='VoiceStudio-'+VERSION+'-win64-offline/'
     files=[(p,'engine/'+p.relative_to(engine).as_posix()) for p in inventory(engine)]
     omitted=[]
+    omitted_fonts=[{'path':p.relative_to(engine).as_posix(), 'bytes':p.stat().st_size,
+                    'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
+                   for p in sorted((engine/'runtime/Lib/site-packages/matplotlib/mpl-data/fonts/afm').glob('*.afm'))
+                   if excluded_legacy_afm(p.relative_to(engine))]
     if args.trim_unused:
         excluded=set()
         kept_records=[]
@@ -99,7 +104,7 @@ def main():
         name='engine/GPT_SoVITS/configs/tts_infer.yaml'
         archive.writestr(prefix+name,data)
         manifest.append({'path':name,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
-        data=json.dumps({'omitted_optional_packages':omitted,'unified_audio_tools':bool(args.audio_tools),'note':'Build choices; not a substitute for final package functional acceptance.'},ensure_ascii=False,indent=2).encode('utf-8')
+        data=json.dumps({'omitted_optional_packages':omitted,'omitted_legacy_afm':omitted_fonts,'unified_audio_tools':bool(args.audio_tools),'note':'Legacy PS AFM support excluded pending licensing evidence. Build choices are not final package acceptance.'},ensure_ascii=False,indent=2).encode('utf-8')
         name='build-choices.json';archive.writestr(prefix+name,data)
         manifest.append({'path':name,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
         archive.writestr(prefix+'package-manifest.json',json.dumps({'version':VERSION,'files':manifest},ensure_ascii=False,indent=2))
