@@ -28,6 +28,7 @@ files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
 files.append(root/'docs/maintenance-inventory.json')
 files.append(root/'docs/font-policy-check.json')
+files.append(root/'docs/offline-rc102-acceptance.json')
 files.append(root/'docs/cover.png')
 files += sorted((root/'packaging').glob('*.py')) + sorted((root/'packaging').glob('*.sh'))
 files += sorted((root/'.github/workflows').glob('*.yml'))

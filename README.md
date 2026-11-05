@@ -2,13 +2,13 @@
 
 # 声线工作室 · Voice Studio
 
-**v1.0.1 · Windows 本地中文配音工作台 · 完整离线预发布**
+**v1.0.2-rc.1 · Windows 本地中文配音工作台 · 异机验收候选版**
 
-**完整离线包包含 Python、GPT-SoVITS、训练/配音基础模型、中文转写和音频工具。** 已通过最终分卷实装、38,278 文件校验、真实训练、新文案配音、声线复用和字幕重算。详细范围见 [完整离线版说明](docs/完整离线预发布说明.md) 与 [最终包验收记录](docs/offline-final-acceptance.json)。发布页的完整附件开放后才是公众下载入口；旧草稿不能代替它。
+**完整离线包包含 Python、GPT-SoVITS、训练/配音基础模型、中文转写和音频工具。** 新候选版用于另一台电脑的安装和训练验收，尚未完成异机和完整训练验证，不冒用旧版的验收结果。详见 [候选版下载说明](docs/1.0.2离线候选下载.md)。旧版的实装、训练与字幕记录保留在 [1.0.1 验收记录](docs/offline-final-acceptance.json)，仅适用于旧包。
 
 让文字，拥有你的声音。整理授权录音、训练声线，再输入文案生成配音与字幕。
 
-[完整离线版发布入口](https://github.com/nianfangomo-bit/voice-studio-local/releases/tag/v1.0.1-offline.1) · [安装与使用说明](docs/完整离线预发布说明.md) · [版本记录](CHANGELOG.md) · [版本管理](docs/版本管理.md)
+[最新候选离线包](https://github.com/nianfangomo-bit/voice-studio-local/releases/tag/v1.0.2-rc.1) · [候选安装说明](docs/1.0.2离线候选下载.md) · [旧版 1.0.1](https://github.com/nianfangomo-bit/voice-studio-local/releases/tag/v1.0.1-offline.1) · [版本记录](CHANGELOG.md)
 
 ## 1.0 有什么
 
@@ -19,7 +19,7 @@
 - 输出完整 WAV、句级 SRT、分段音频、时间线和交付 ZIP。
 - 候选声线试听后发布，后续重复使用；本机任务队列及日志。
 
-1.0.1 是本软件的版本号，引擎兼容目标仍为 GPT-SoVITS v2Pro。本次补齐独立运行环境和离线发行流程，不改变原有界面与配色。
+1.0.2-rc.1 是本软件的候选版本号，引擎兼容目标仍为 GPT-SoVITS v2Pro，不改变原有界面与配色。
 
 ## 下载：请按自己的环境选择
 
@@ -27,9 +27,10 @@
 | --- | --- | --- |
 | voice-studio-local-v1.0.0-source.zip | 软件代码、已构建页面、封面、启动器、中文文档和文件校验清单；**不含 Python、引擎和模型** | 已有兼容环境的用户或开发者 |
 | GitHub 自动生成的 Source code | 标签对应的仓库快照 | 开发者 |
+| 1.0.2-rc.1 完整离线候选包 | 新版安装器、offline-package.json 和全部分卷；含运行环境、引擎和基础模型 | 本次异机验收使用，尚未完成完整训练和异机验证 |
 | 1.0.1 完整离线安装包 | 安装器、offline-package.json、25 个 part 分卷；含运行环境、引擎和基础模型 | 没有现成 GPT-SoVITS 环境、希望导入录音后开始整理训练的用户 |
 
-完整包约 6.02 GiB，解压约 9.30 GiB；建议安装时至少预留 30 GB。所有分卷须从同一发布页面下载，不能混用旧草稿。安装后运行环境检查，再双击 Start.cmd；无需另装 Python 或 CUDA Toolkit，仍需兼容的 NVIDIA 驱动。
+旧版完整包约 6.02 GiB，解压约 9.30 GiB；新版准确大小以发布清单为准。建议安装时至少预留 30 GB。所有分卷须从同一发布页面下载，不能混用版本。安装后运行环境检查，再双击 Start.cmd；无需另装 Python 或 CUDA Toolkit，仍需兼容的 NVIDIA 驱动。
 
 ## 已有引擎如何启动
 

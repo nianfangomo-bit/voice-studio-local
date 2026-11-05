@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-05",
+  "version": "1.0.2-rc.1",
+  "release_tag": "v1.0.2-rc.1",
+  "release_status": "candidate for independent PC acceptance",
+  "archive_sha256": "cece447ca5874fb61add6d64b129109cd6263b70e4df61e51d070724b08bd39d",
+  "parts": 25,
+  "archive_bytes": 6467119509,
+  "unpacked_bytes": 9983197646,
+  "local_installation": {
+    "date": "2026-11-05",
+    "version": "1.0.2-rc.1",
+    "scope": "same computer, fresh independent Chinese-space path, actual final-part installer",
+    "installer_exit_code": 0,
+    "deep_check_exit_code": 0,
+    "manifest_files_verified": 38233,
+    "environment_import_checks": "all passed",
+    "python": "3.9.13",
+    "torch": "2.0.0+cu118",
+    "gpu_detected": "NVIDIA GeForce RTX 3080",
+    "personal_models_or_recordings_used": false,
+    "gpu_training_run": false,
+    "network_disabled": false,
+    "third_party_warning": "FunASR tokenize.py emitted SyntaxWarning; import succeeded"
+  },
+  "startup": {
+    "fresh_application_start": "passed",
+    "authenticated_state": "passed",
+    "bundled_environment_autoconfig": "passed",
+    "user_models_or_recordings_used": false
+  },
+  "python_unit_tests": 55,
+  "frontend_checks": 6,
+  "font_resource_smoke": "passed: independent resources, engine spectrogram function, PNG/PDF/SVG",
+  "new_package_full_training": "not tested",
+  "new_package_inference": "not tested",
+  "new_package_offline_network_disabled": "not tested",
+  "other_windows_pc": "not tested",
+  "cancel_restart_upgrade_end_to_end": "not tested on this package",
+  "limitations": [
+    "Unsigned installer",
+    "Candidate not stable release",
+    "Prior 1.0.1 training evidence does not certify this package",
+    "Legacy PS AFM resources omitted",
+    "No independent security audit"
+  ]
+}
