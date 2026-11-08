@@ -35,7 +35,7 @@ class MaintenanceSecurityTests(unittest.TestCase):
     def test_all_api_routes_require_session(self):
         self.client.cookies.clear()
         routes = [r for r in self.app.routes if r.path.startswith('/api/')]
-        self.assertEqual(len(routes), 21)
+        self.assertEqual(len(routes), 22)
         for route in routes:
             method = sorted(route.methods - {'HEAD', 'OPTIONS'})[0]
             path = route.path

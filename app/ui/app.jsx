@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Training} from './Training';
+import {HardwareAdvice} from './HardwareAdvice';
 import {preferredVoiceId} from './voice-selection.mjs';
 
 // 统一访问已认证的本机 API；有数据时提交 JSON，失败保留服务端中文提示。
@@ -55,7 +56,7 @@ function App() {
     {page==='训练工作台'&&<Training state={state} api={api} act={act} pending={pending}/>}
     {page==='任务中心'&&<><p className="lead">配音按完成片段计数，训练按真实阶段计数。阶段计数不代表总耗时百分比。</p>{state.jobs.length===0&&<section className="panel">还没有任务。</section>}{state.jobs.map(j=><section className="panel job" key={j.id}><div><span className={'badge '+j.state}>{statuses[j.state]}</span><h3>{j.name||state.projects.find(p=>p.id===j.project_id)?.name||j.project_id}</h3><p>{j.message}</p><small>{j.completed} / {j.total} {j.kind==='training'?'阶段完成':'段通过验证'}</small></div><div>{busyStates.includes(j.state)&&<button disabled={pending||j.state==='cancelling'} onClick={()=>act(()=>api(`jobs/${j.id}/cancel`,{}),'已提交取消请求。')}>取消任务</button>}{['failed','cancelled','interrupted'].includes(j.state)&&j.kind!=='training'&&<button disabled={pending} onClick={()=>act(()=>api(`jobs/${j.id}/retry`,{}),'已重新排队。')}>重试</button>}<button onClick={()=>act(async()=>setLog((await api(`jobs/${j.id}/log`)).text),'已读取日志')}>查看日志</button></div></section>)}{log&&<pre className="panel">{log}</pre>}</>}
     {page==='作品库'&&<><p className="lead">成品是不可变版本。修改文案不会覆盖历史音频。当前提供句级 SRT，不包含逐字高亮或视频字幕烧录。</p>{state.projects.flatMap(p=>p.exports.map((e,i)=>{const base=`/api/projects/${p.id}/exports/${e.id}/`;return <section className="panel" key={e.id}><div className="toolbar"><h3>{p.name} · 第 {i+1} 版</h3><span>{new Date(e.created*1000).toLocaleString()}</span></div><audio controls src={base+'narration.wav'}/><div className="toolbar">{[['narration.wav','完整 WAV'],['subtitles.srt','字幕 SRT'],['timeline.json','剪辑时间线'],['delivery.zip','完整交付包 ZIP']].map(([f,t])=><a key={f} href={base+f} download={f}>{t} ↓</a>)}</div><small>解压交付包后，音频、字幕与时间线处于同一目录；尚未自动启动剪辑软件。</small></section>}))}{!state.projects.some(p=>p.exports.length)&&<section className="panel">还没有完整成品。生成全部片段后会自动合成。</section>}</>}
-    {page==='环境设置'&&<><Settings current={state.settings} pending={pending} submit={d=>act(()=>api('settings',d),'环境已保存；没有安装或修改任何依赖。')}/><section className="panel"><button disabled={pending} onClick={()=>act(async()=>setChecks(await api('check')),'检测完成')}>检查环境</button>{checks.map((c,i)=><p key={i} className={c.ok?'good':'bad'}>{c.ok?'✓':'!'} {c.name}：{c.detail}</p>)}</section></>}
+    {page==='环境设置'&&<><Settings current={state.settings} history={state.environment_history||[]} pending={pending} submit={d=>act(()=>api('settings',d),'环境路径已保存，新任务使用此配置；下次启动服务也会沿用。尚未证明训练兼容，没有安装或升级依赖。')}/><section className="panel"><button disabled={pending} onClick={()=>act(async()=>setChecks(await api('check')),'检测完成')}>检查环境</button>{checks.map((c,i)=><p key={i} className={c.ok?'good':'bad'}>{c.ok?'✓':'!'} {c.name}：{c.detail}</p>)}</section><details className="panel"><summary>可选：只读硬件检测</summary><HardwareAdvice api={api} act={act} pending={pending}/></details></>}
   </main></div>
 }
 // 新建项目表单：默认只选已发布声线，创建后由项目固定声线快照。
@@ -89,5 +90,16 @@ function Options({project:p,disabled,save}){const [speed,S]=useState(p.speed),[g
 // 收集模型、参考录音和授权信息，要求用户明确确认可信来源。
 function VoiceForm({pending,submit}){return <form className="panel" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);submit({...Object.fromEntries(f),authorized:f.has('authorized'),trusted:f.has('trusted')})}}><h2>导入已有声线</h2><div className="grid">{[['name','声线名称','我的讲解声线'],['gpt','GPT 权重（.ckpt）','粘贴本机完整路径'],['sovits','SoVITS 权重（.pth）','粘贴本机完整路径'],['reference','参考录音（3～10 秒 PCM WAV）','粘贴本机完整路径']].map(([name,label,placeholder])=><Field key={name} label={label}><input name={name} required placeholder={placeholder}/></Field>)}</div><Field label="参考录音原文（必须与声音一致）"><textarea name="prompt_text" required rows="2"/></Field><Field label="授权来源说明"><input name="authorization" required placeholder="例如：本人录制，本人拥有使用权"/></Field><label className="check"><input type="checkbox" name="authorized" required/>我有权使用此录音和声线。</label><label className="check"><input type="checkbox" name="trusted" required/>这些模型来自可信来源，我理解未知权重可能包含不安全内容。</label><button className="primary" disabled={pending}>导入声线</button></form>}
 // 配置用户选择的本地引擎与旧工作流，保留原环境依赖。
-function Settings({current:s,pending,submit}){return <form className="panel" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);submit({...Object.fromEntries(f),trusted:f.has('trusted')})}}><h2>连接已有环境</h2><p>本版适配 v2Pro 整合包。不安装依赖，不改动旧项目配置。</p>{[['engine','GPT-SoVITS 整合包目录'],['legacy','旧配音工作流目录'],['ffmpeg','FFmpeg 可执行文件（留空自动检测）']].map(([key,label])=><Field key={key} label={label}><input name={key} defaultValue={s[key]||''} required={key!=='ffmpeg'}/></Field>)}<label className="check"><input type="checkbox" name="trusted" required/>我确认这些本机程序可信，允许软件调用。</label><button className="primary" disabled={pending}>检查路径并保存</button></form>}
+function Settings({current,history=[],pending,submit}){
+  const [choice,setChoice]=useState('current');
+  const s=choice==='current'?current:(history.find(h=>h.id===choice)?.settings||current);
+  return <section className="panel"><h2>选择已有环境</h2><p>训练、转写和配音共用所选配置；运行任务时不能切换。保存只检查路径，不代表依赖或训练已验收。</p>
+    <p>当前：{current.environment_name||current.engine||'尚未配置'}</p>
+    <label className="field">填写来源<select value={choice} onChange={e=>setChoice(e.target.value)}><option value="current">当前配置</option>{history.map(h=><option key={h.id} value={h.id}>恢复历史：{h.settings.environment_name||h.settings.engine} · {new Date(h.created*1000).toLocaleString()}</option>)}</select></label>
+    <form key={choice+'|'+(s.runtime||'')} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);submit({...Object.fromEntries(f),trusted:f.has('trusted')})}}>
+      {[['environment_name','环境名称（便于区分）'],['engine','GPT-SoVITS v2Pro 引擎目录'],['runtime','Python 完整路径（留空使用引擎内 runtime/python.exe）'],['legacy','旧配音工作流目录'],['ffmpeg','FFmpeg 可执行文件（留空自动检测）']].map(([key,label])=><Field key={key} label={label}><input name={key} defaultValue={s[key]||''} required={['engine','legacy'].includes(key)}/></Field>)}
+      <label className="check"><input type="checkbox" name="trusted" required/>我确认环境来自可信来源，允许运行；已有模型和录音不会被移动。</label>
+      <button className="primary" disabled={pending}>确认路径并保存</button>
+    </form><p className="muted">历史配置可重新确认后恢复。不会安装依赖或自动重启；当前服务进程保持原 Python，重新启动服务后才更换服务自身环境。</p></section>;
+}
 createRoot(document.getElementById('root')).render(<App/>);

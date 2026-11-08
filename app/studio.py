@@ -133,7 +133,9 @@ class Studio:
         if data.get('trusted') is not True:
             raise ValueError('请确认这是可信的本地引擎与配音程序。')
         engine = Path(data['engine']).resolve()
-        runtime = require_file(engine / 'runtime' / 'python.exe')
+        runtime = require_file(data.get('runtime') or engine / 'runtime' / 'python.exe')
+        if runtime.name.lower() != 'python.exe':
+            raise ValueError('请选择可信环境中的 python.exe，不接受其他程序。')
         require_file(engine / 'GPT_SoVITS' / 'TTS_infer_pack' / 'TTS.py')
         legacy = Path(data['legacy']).resolve()
         core = require_file(legacy / 'voice_tool' / 'main.py')
@@ -143,9 +145,15 @@ class Studio:
         with self.lock:
             if self.busy():
                 raise ValueError('任务运行时不能修改环境。请等待或取消任务。')
-            return self.save('settings', {'id': 'local', 'engine': str(engine), 'runtime': str(runtime),
+            previous = self.settings()
+            selected = {'id': 'local', 'engine': str(engine), 'runtime': str(runtime),
                 'legacy': str(legacy), 'legacy_hash': digest(core), 'ffmpeg': str(ffmpeg),
-                'engine_hash': digest(engine / 'GPT_SoVITS' / 'TTS_infer_pack' / 'TTS.py'), 'version': 'v2Pro'})
+                'engine_hash': digest(engine / 'GPT_SoVITS' / 'TTS_infer_pack' / 'TTS.py'), 'version': 'v2Pro',
+                'environment_name': str(data.get('environment_name') or engine.name)[:100],
+                'validation': 'paths_only'}
+            if previous and any(previous.get(k) != selected.get(k) for k in ('engine', 'runtime', 'legacy', 'ffmpeg')):
+                self.save('environment_history', {'id': uid(), 'created': time.time(), 'settings': previous})
+            return self.save('settings', selected)
 
     # 中文维护：检测磁盘、配置路径和显卡，返回可操作的检查结果而非音质评分。
     def check(self):
@@ -511,4 +519,4 @@ class Studio:
                 s['current'] = self.current(p, s)
         jobs = [{k: v for k, v in j.items() if k != 'request'} for j in self.all('jobs')]
         return {'settings': self.settings(), 'voices': self.all('voices'), 'projects': projects, 'jobs': jobs,
-                'datasets': self.all('datasets')}
+                'datasets': self.all('datasets'), 'environment_history': self.all('environment_history')[:10]}

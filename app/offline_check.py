@@ -46,9 +46,9 @@ def inspect(deep=False):
     torch = sys.modules.get('torch')
     if torch:
         try:
-            available = torch.cuda.is_available()
-            detail = torch.cuda.get_device_name(0) if available else '未检测到可用 CUDA；可整理录音，训练与当前配音引擎需 NVIDIA 显卡和兼容驱动。'
-            record('CUDA 训练与配音', available, detail)
+            from runtime_guard import probe_cuda
+            report = probe_cuda(torch)
+            record('CUDA 基础运算（不代表完整训练验收）', report['ok'], json.dumps(report, ensure_ascii=False))
         except Exception as exc:
             record('CUDA 训练与配音', False, exc)
     free = shutil.disk_usage(ROOT).free / 1024**3

@@ -92,6 +92,12 @@ def make_app(studio, token, port):
     def check():
         return studio.check()
 
+    # 中文维护：复用首次安装助手，只读检测硬件并给出候选包，不下载或修改环境。
+    @app.get('/api/hardware-advice')
+    def hardware_advice():
+        from hardware_advisor import inspect_hardware
+        return inspect_hardware()
+
     # 中文维护：导入用户明确授权且可信的模型组合与参考录音。
     @app.post('/api/voices')
     def voices(data: dict):
@@ -273,7 +279,7 @@ def main():
     bundled = ROOT / 'engine' / 'runtime' / 'python.exe'
     if bundled.is_file():
         existing = s.settings()
-        if not existing or not Path(existing.get('runtime', '')).is_file():
+        if not existing:
             engine = bundled.parents[1]
             s.configure({'trusted': True, 'engine': str(engine), 'legacy': str(ROOT / 'legacy'),
                          'ffmpeg': str(engine / 'runtime' / 'ffmpeg.exe')})

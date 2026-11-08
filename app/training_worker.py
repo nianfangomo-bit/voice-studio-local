@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from studio import ROOT, HIDDEN, atomic_json, digest
 from training import initialize_checkpoint_directory, compatible_loader_workers
+from runtime_guard import require_cuda, validate_features, validate_rows, check_stage
 
 
 # 中文维护：在独立任务目录执行六阶段微调，持有 GPU 锁并保留日志、检查点和候选模型。
@@ -48,8 +49,8 @@ def main(request_path):
             raise RuntimeError('引擎已改变，请重新检查环境。')
         import torch
         import yaml
-        if not torch.cuda.is_available():
-            raise RuntimeError('训练需要可用的 CUDA 显卡。')
+        progress('检查显卡基础运算兼容性（矩阵与 FFT）')
+        atomic_json(folder / 'cuda-check.json', require_cuda(torch))
         if shutil.disk_usage(folder).free < 12 * 1024**3:
             raise RuntimeError('可用磁盘不足 12 GB，未开始训练。')
         selected = [r for r in ds['rows'] if not r['excluded']]
@@ -80,28 +81,32 @@ def main(request_path):
         env['PATH'] = str(Path(s['ffmpeg']).parent) + os.pathsep + env['PATH']
 
         # 中文维护：执行允许的上游训练阶段，记录真实日志；非零退出立即停止后续阶段。
-        def run(stage, script, args=()):
+        def run(stage, script, args=(), validate=None):
             nonlocal completed
             progress(stage)
             print('\nSTAGE: ' + stage, flush=True)
             with (folder / ('stage-' + str(completed + 1) + '.log')).open('w', encoding='utf-8') as stage_log:
                 child = subprocess.run([s['runtime'], '-I', '-X', 'utf8', '-B', str(ROOT / 'engine_entry.py'), str(engine), script, *args],
                            cwd=str(sandbox), env=env, stdout=stage_log, stderr=subprocess.STDOUT, creationflags=HIDDEN)
-            if child.returncode != 0:
-                detail = (folder / ('stage-' + str(completed + 1) + '.log')).read_text(encoding='utf-8', errors='replace')
-                print(detail[-12000:], flush=True)
-                raise RuntimeError(stage + ' 失败：' + detail[-1500:])
+            try:
+                check_stage(child.returncode, folder / ('stage-' + str(completed + 1) + '.log'), validate)
+            except RuntimeError as exc:
+                raise RuntimeError(stage + ' 失败：' + str(exc)) from exc
             completed += 1
             progress(stage + ' 完成')
 
-        run('1/6 重新计算校对文字与文本特征', 'prepare_datasets/1-get-text.py')
+        run('1/6 重新计算校对文字与文本特征', 'prepare_datasets/1-get-text.py',
+            validate=lambda: validate_rows(exp / '2-name2text-0.txt', len(selected)))
         text_part = exp / '2-name2text-0.txt'
         if not text_part.exists() or len(text_part.read_text(encoding='utf-8').strip().splitlines()) != len(selected):
             raise RuntimeError('文字特征数量与校对片段不一致，已停止，不能带缺失样本继续训练。')
         shutil.copy2(text_part, exp / '2-name2text.txt')
-        run('2/6 提取音频特征', 'prepare_datasets/2-get-hubert-wav32k.py')
-        run('3/6 提取声纹特征', 'prepare_datasets/2-get-sv.py')
-        run('4/6 提取语义特征', 'prepare_datasets/3-get-semantic.py')
+        run('2/6 提取音频特征', 'prepare_datasets/2-get-hubert-wav32k.py',
+            validate=lambda: validate_features(exp, selected, [('4-cnhubert', '.pt'), ('5-wav32k', '')]))
+        run('3/6 提取声纹特征', 'prepare_datasets/2-get-sv.py',
+            validate=lambda: validate_features(exp, selected, [('7-sv_cn', '.pt')]))
+        run('4/6 提取语义特征', 'prepare_datasets/3-get-semantic.py',
+            validate=lambda: validate_rows(exp / '6-name2semantic-0.tsv', len(selected)))
         semantic = exp / '6-name2semantic-0.tsv'
         lines = semantic.read_text(encoding='utf-8').strip().splitlines()
         if len(lines) != len(selected):

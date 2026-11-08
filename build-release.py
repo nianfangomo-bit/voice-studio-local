@@ -11,9 +11,9 @@ out = root.parent / 'voice-studio-release-artifacts'
 out.mkdir(exist_ok=True)
 top = {'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md',
        '.gitignore', 'tested-environment.json', 'build-release.py', 'VERSION'}
-app_files = {'studio.py', 'server.py', 'launcher.py', 'training.py', 'training_worker.py',
+app_files = {'environment_selection.py', 'tests/test_environment_selection.py', 'HardwareAdvisor.cs', 'HardwareAdvisor.exe', 'hardware_advisor.py', 'tests/test_hardware_advisor.py', 'runtime_guard.py', 'tests/test_runtime_guard.py', 'studio.py', 'server.py', 'launcher.py', 'training.py', 'training_worker.py',
              'inference_worker.py', 'engine_entry.py', '启动.cmd', 'build.cjs', 'package.json',
-             'ui/app.jsx', 'ui/Training.jsx', 'ui/voice-selection.mjs', 'static/index.html',
+             'ui/app.jsx', 'ui/Training.jsx', 'ui/HardwareAdvice.jsx', 'ui/voice-selection.mjs', 'static/index.html',
              'static/style.css', 'static/app.js', 'tests/test_studio.py',
              'tests/voice-selection.test.mjs', 'legacy/voice_tool/main.py'}
 app_files.update({'preparation.py','preparation_worker.py','build_portable.py',

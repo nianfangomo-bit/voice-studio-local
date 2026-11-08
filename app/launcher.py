@@ -10,6 +10,7 @@ import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
+from environment_selection import selected_runtime
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
@@ -64,15 +65,12 @@ def main():
         webbrowser.open(url)
         return
     bootstrap = ROOT / 'data' / 'bootstrap.json'
-    bundled = ROOT / 'engine' / 'runtime' / 'python.exe'
-    if bundled.is_file():
-        # Initialization/recovery belongs to the service, after its exclusive lock.
-        # Merely reopening the launcher must never mark active jobs interrupted.
-        bootstrap.parent.mkdir(parents=True, exist_ok=True)
-        bootstrap.write_text(json.dumps({'runtime': str(bundled)}), encoding='utf-8')
     try:
-        runtime = Path(json.loads(bootstrap.read_text(encoding='utf-8'))['runtime'])
-    except (OSError, KeyError, ValueError):
+        runtime = selected_runtime(ROOT)
+    except ValueError as exc:
+        messagebox.showerror('已选环境不可用', str(exc))
+        return
+    if runtime is None:
         folder = filedialog.askdirectory(title='选择可信 GPT-SoVITS 整合包目录（包含 runtime 文件夹）')
         if not folder:
             return

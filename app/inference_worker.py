@@ -67,8 +67,8 @@ def main(request_path):
         import yaml
         import torch
         import soundfile as sf
-        if not torch.cuda.is_available():
-            raise RuntimeError('当前引擎无法使用 CUDA。请检查 NVIDIA 驱动与引擎环境。')
+        from runtime_guard import require_cuda
+        atomic_json(folder / 'cuda-check.json', require_cuda(torch))
         config = yaml.safe_load((engine / 'GPT_SoVITS/configs/tts_infer.yaml').read_text(encoding='utf-8'))
         config['custom'] = {'device': 'cuda', 'is_half': True, 'version': 'v2Pro',
             't2s_weights_path': v['gpt'], 'vits_weights_path': v['sovits'],
