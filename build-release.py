@@ -19,11 +19,14 @@ app_files = {'environment_selection.py', 'tests/test_environment_selection.py', 
 app_files.update({'preparation.py','preparation_worker.py','build_portable.py',
                   'tests/test_preparation.py','tests/test_preparation_api.py'})
 app_files.update({'offline_check.py','环境检查.cmd','Start.cmd','OFFLINE-README.md',
-                  'OFFLINE-THIRD-PARTY.md','package_offline.py','split_offline.py',
+                  'OFFLINE-THIRD-PARTY.md','package_offline.py','split_offline.py','prepare_offline_assets.py',
                   'OfflineSetup.cs','publish_offline_release.py','DownloadOffline.ps1'})
+app_files.update({'bootstrap.ps1','diagnostics.py','environment_probe.py',
+                  'migrate_data.py','MigrateData.cmd'})
 # 源码交付保留维护回归测试；这些文件不进入运行时 APP_FILES 安装清单。
 app_files.update({'tests/test_maintenance_security.py', 'tests/test_launcher.py',
-                  'tests/test_release_validation.py', 'tests/test_startup_safety.py', 'tests/test_font_policy.py'})
+                  'tests/test_release_validation.py', 'tests/test_startup_safety.py', 'tests/test_font_policy.py',
+                  'tests/test_data_migration.py', 'tests/test_launcher_entry.py'})
 files = [root / p for p in sorted(top)] + [root / 'app' / p for p in sorted(app_files)]
 files += sorted((root / 'docs').glob('*.md')) + sorted((root / 'licenses').glob('*.txt'))
 files.append(root/'docs/maintenance-inventory.json')

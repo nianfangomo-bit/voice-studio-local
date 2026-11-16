@@ -21,7 +21,7 @@ public class HardwareGpu {
 }
 public class HardwareReport {
     public string schema = "voice-hardware-report-v1";
-    public string rules = "2026-11-08.1";
+    public string rules = "2026-11-17.1";
     public string system;
     public bool x64;
     public string note;
@@ -29,7 +29,7 @@ public class HardwareReport {
 }
 public static class HardwareAdvisor {
     public const string Upstream = "https://github.com/RVC-Boss/GPT-SoVITS/releases/tag/20250606v2pro";
-    public const string Current = "https://github.com/nianfangomo-bit/voice-studio-local/releases/tag/v1.0.2-rc.1";
+    public const string Current = "https://github.com/nianfangomo-bit/voice-studio-local/releases";
     public const string Drivers = "https://www.nvidia.com/Download/index.aspx";
     public const long Nvidia50Bytes = 8835144925L;
     public const string Nvidia50Hash = "97b4edcd451c42357db7e26e6c1c877ca5d85144fe97beaff6d7005d35bee008";
@@ -47,7 +47,7 @@ public static class HardwareAdvisor {
                 g.message="驱动低于 CUDA 12.8 GA 的 Windows 配套基线 570.65。请先核对该型号所需驱动，不要先下载环境；助手不会安装驱动。";
             } else {
                 g.status="candidate_50"; g.url=Upstream;
-                g.message="候选：上游 v2Pro nvidia50 包（8.84 GB）。当前 rc.1 旧环境不适用；该候选尚未通过本产品 5060 完整训练验收，只提供官方来源，不自动安装或切换。";
+                g.message="候选：上游 v2Pro nvidia50 包（8.84 GB）。旧版 CUDA 11.8 环境不适用于已复现的 5060 问题；朋友电脑的手工整合有训练记录，但新版完整安装包仍须单独验收。助手只提供官方来源，不自动安装或切换。";
             }
         } else if((cap.Major==8 && (cap.Minor==0 || cap.Minor==6 || cap.Minor==9)) || (cap.Major==7 && cap.Minor==5)) {
             if(drv < new Version(520,6)) {
@@ -55,7 +55,7 @@ public static class HardwareAdvisor {
                 g.message="驱动低于旧环境 CUDA 11.8 GA 的 Windows 配套基线 520.06，先核对驱动；兼容模式可能不同，此处不判定硬件损坏。";
             } else {
                 g.status="candidate_legacy"; g.url=Current;
-                g.message="可评估现有完整离线候选包。已记录 RTX 3080 本机测试，但本型号/驱动组合不因此视为已验收；已有可用安装无需重复下载。安装后仍须实际运算及训练验收。";
+                g.message="可评估发布页中标明适用此类环境的完整离线候选包。已记录 RTX 3080 本机测试，但不能据此保证其他型号/驱动；已有可用安装无需重复下载。请核对包版本并实际验收。";
             }
         } else {
             g.message="此架构没有产品验证规则，暂不推荐安装包；请导出报告供核查。";

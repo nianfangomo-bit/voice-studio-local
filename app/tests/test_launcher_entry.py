@@ -3,6 +3,8 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from build_portable import APP_FILES
 
 
 class LauncherEntryTests(unittest.TestCase):
@@ -20,3 +22,12 @@ class LauncherEntryTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         self.assertIn('bootstrap.ps1', (root / 'Start.cmd').read_text())
         self.assertNotIn('engine\\runtime\\python.exe', (root / 'Start.cmd').read_text())
+
+    def test_offline_package_contains_startup_dependencies(self):
+        """离线打包清单必须含新版启动、环境检查与数据迁移所需文件。"""
+        root = Path(__file__).resolve().parents[1]
+        required = {'bootstrap.ps1', 'diagnostics.py', 'environment_probe.py',
+                    'migrate_data.py', 'MigrateData.cmd'}
+        self.assertTrue(required.issubset(APP_FILES), required - set(APP_FILES))
+        for name in required:
+            self.assertTrue((root / name).is_file(), name)

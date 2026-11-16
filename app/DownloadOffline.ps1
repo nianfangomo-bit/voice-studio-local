@@ -1,6 +1,11 @@
-param([string]$Destination = (Join-Path $PSScriptRoot 'VoiceStudio-1.0.2-rc.1-download'))
+param(
+    [string]$Version = '1.0.3-rc.2',
+    [string]$Destination = ''
+)
 $ErrorActionPreference = 'Stop'
-$tag = 'v1.0.2-rc.1'
+if ($Version -notmatch '^[0-9][A-Za-z0-9.\-]*$') { throw '版本号无效' }
+if (-not $Destination) { $Destination = Join-Path $PSScriptRoot ('VoiceStudio-' + $Version + '-download') }
+$tag = 'v' + $Version
 $base = 'https://github.com/nianfangomo-bit/voice-studio-local/releases/download/' + $tag + '/'
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 # 校验已有文件后复用；下载先落临时文件并有限重试，摘要通过才提交为正式文件。
@@ -30,10 +35,10 @@ foreach ($name in @('offline-package.json','VoiceStudio-Offline-Setup.exe','INST
     Receive-File $name $checks[$name]
 }
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $Destination 'offline-package.json') | ConvertFrom-Json
-if ($manifest.version -ne '1.0.2-rc.1' -or $manifest.folder -ne 'VoiceStudio-1.0.2-rc.1-win64-offline') { throw '版本不匹配' }
+if ($manifest.version -ne $Version -or $manifest.folder -ne ('VoiceStudio-' + $Version + '-win64-offline')) { throw '版本不匹配' }
 $partNumber = 1
 foreach ($part in $manifest.parts) {
-    $expectedName = 'VoiceStudio-1.0.2-rc.1-win64-offline.zip.part{0:D3}' -f $partNumber
+    $expectedName = ('VoiceStudio-' + $Version + '-win64-offline.zip.part{0:D3}') -f $partNumber
     if ($part.name -ne $expectedName -or $part.sha256 -notmatch '^[a-fA-F0-9]{64}$') { throw '分卷清单不完整或顺序错误' }
     Receive-File $part.name $part.sha256
     $partNumber++
