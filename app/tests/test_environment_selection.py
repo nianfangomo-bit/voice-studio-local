@@ -2,6 +2,7 @@
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from environment_selection import selected_runtime
@@ -55,6 +56,21 @@ class EnvironmentSelectionTests(unittest.TestCase):
         """外部环境必须由用户显式确认。"""
         with self.assertRaises(ValueError):
             self.studio.configure(dict(self.config,trusted=False))
+
+    def test_failed_probe_preserves_previous(self):
+        """新环境验证失败不能写入设置或新增历史。"""
+        original = self.studio.configure(self.config)
+        with patch.object(self.studio, 'probe_environment', return_value={'ok': False, 'detail': 'fixture failure'}):
+            with self.assertRaisesRegex(ValueError, '原配置保留'):
+                self.studio.configure(dict(self.config, runtime=str(self.root/'new-runtime/python.exe')), verify_runtime=True)
+        self.assertEqual(self.studio.settings(), original)
+        self.assertEqual(self.studio.all('environment_history'), [])
+
+    def test_verified_configuration_records_scope(self):
+        """记录基础检查结果，不标记完整训练通过。"""
+        with patch.object(self.studio, 'probe_environment', return_value={'ok': True, 'torch': 'fixture'}):
+            result = self.studio.configure(self.config, verify_runtime=True)
+        self.assertEqual(result['validation'], 'dependencies_and_cuda')
 
 
 if __name__=='__main__':

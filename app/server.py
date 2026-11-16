@@ -85,12 +85,18 @@ def make_app(studio, token, port):
     # 中文维护：保存经过用户信任确认的本机引擎配置。
     @app.post('/api/settings')
     def settings(data: dict):
-        return studio.configure(data)
+        return studio.configure(data, verify_runtime=True)
 
     # 中文维护：提供用户点击触发的环境诊断，不是开发测试接口。
     @app.get('/api/check')
     def check():
         return studio.check()
+
+    @app.get('/api/diagnostics')
+    def diagnostics():
+        """认证后导出白名单诊断摘要，不上传用户数据。"""
+        from diagnostics import summary
+        return JSONResponse(summary(studio), headers={'Content-Disposition': 'attachment; filename="voice-diagnostics.json"'})
 
     # 中文维护：复用首次安装助手，只读检测硬件并给出候选包，不下载或修改环境。
     @app.get('/api/hardware-advice')
@@ -107,7 +113,7 @@ def make_app(studio, token, port):
     @app.post('/api/voices/{vid}/publish')
     def publish(vid: str, data: dict):
         if data.get('listened') is not True:
-            raise ValueError('请试听新文案后确认发布。')
+            raise ValueError('请先试听新文案并勾选确认，再发布声线（接口需 listened: true）。已有候选模型保留。')
         from training import publish
         return publish(studio, vid)
 

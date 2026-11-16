@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-"%~dp0engine\runtime\python.exe" -I -X utf8 -B launcher.py
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0bootstrap.ps1"
 if errorlevel 1 pause

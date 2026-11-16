@@ -129,7 +129,7 @@ class Studio:
             return {}
 
     # 中文维护：校验用户信任和必要文件，空闲时保存路径与引擎指纹，不安装依赖。
-    def configure(self, data):
+    def configure(self, data, verify_runtime=False):
         if data.get('trusted') is not True:
             raise ValueError('请确认这是可信的本地引擎与配音程序。')
         engine = Path(data['engine']).resolve()
@@ -151,9 +151,29 @@ class Studio:
                 'engine_hash': digest(engine / 'GPT_SoVITS' / 'TTS_infer_pack' / 'TTS.py'), 'version': 'v2Pro',
                 'environment_name': str(data.get('environment_name') or engine.name)[:100],
                 'validation': 'paths_only'}
+            if verify_runtime:
+                report = self.probe_environment(runtime)
+                if report.get('ok') is not True:
+                    raise ValueError('新环境未通过检查，原配置保留。' + report.get('detail', '请使用经过验证的完整环境。'))
+                selected.update(validation='dependencies_and_cuda', validation_report=report)
             if previous and any(previous.get(k) != selected.get(k) for k in ('engine', 'runtime', 'legacy', 'ffmpeg')):
                 self.save('environment_history', {'id': uid(), 'created': time.time(), 'settings': previous})
             return self.save('settings', selected)
+
+    def probe_environment(self, runtime):
+        """在独立进程检查候选环境；调用方持有业务锁，避免与任务同时占用显卡。"""
+        try:
+            probe = subprocess.run([str(runtime), '-I', '-X', 'utf8', '-B', str(ROOT / 'environment_probe.py')],
+                capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60, creationflags=HIDDEN)
+            lines = [line for line in probe.stdout.splitlines() if line.startswith('VOICE_PROBE_JSON=')]
+            report = json.loads(lines[-1].split('=', 1)[1]) if lines else {}
+            if probe.returncode != 0:
+                report['ok'] = False
+            if not report:
+                return {'ok': False, 'detail': '运行环境没有返回检查结果，请检查完整安装。'}
+            return report
+        except (OSError, subprocess.TimeoutExpired, ValueError):
+            return {'ok': False, 'detail': '环境检查失败或超时，请确认 Python 与依赖完整后重试。'}
 
     # 中文维护：检测磁盘、配置路径和显卡，返回可操作的检查结果而非音质评分。
     def check(self):
@@ -172,6 +192,14 @@ class Studio:
                 checks.append({'name': '显卡检测', 'ok': False, 'detail': str(e)})
         else:
             checks.append({'name': 'NVIDIA 显卡', 'ok': False, 'detail': '未找到 nvidia-smi；当前版本需要 CUDA 环境。'})
+        with self.lock:
+            if self.busy():
+                checks.append({'name': '实际运行环境检查', 'ok': False, 'detail': '当前有任务，暂不占用显卡。请在任务结束后再次检查。'})
+            elif s.get('runtime') and Path(s['runtime']).is_file():
+                report = self.probe_environment(s['runtime'])
+                checks.append({'name': '依赖、矩阵与 FFT 实测', 'ok': report.get('ok') is True,
+                               'detail': report.get('detail', '运行环境未返回检查结果，请检查完整安装与本机日志。'),
+                               'versions': {k: report[k] for k in ('python', 'torch', 'cuda', 'torchaudio') if k in report}})
         return checks
 
     # 中文维护：验证模型来源确认与参考音频时长，复制参考录音并保存权重指纹。

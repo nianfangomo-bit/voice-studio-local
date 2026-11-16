@@ -35,7 +35,7 @@ class MaintenanceSecurityTests(unittest.TestCase):
     def test_all_api_routes_require_session(self):
         self.client.cookies.clear()
         routes = [r for r in self.app.routes if r.path.startswith('/api/')]
-        self.assertEqual(len(routes), 22)
+        self.assertEqual(len(routes), 23)
         for route in routes:
             method = sorted(route.methods - {'HEAD', 'OPTIONS'})[0]
             path = route.path
@@ -77,6 +77,15 @@ class MaintenanceSecurityTests(unittest.TestCase):
     def test_static_source_files_are_not_served(self):
         self.assertEqual(self.client.get('/static/server.py').status_code, 404)
         self.assertEqual(self.client.get('/static/style.css').status_code, 200)
+
+    def test_diagnostics_excludes_private_content(self):
+        """分享摘要不能泄露自定义字段、错误文案、路径或任务标识。"""
+        self.studio.save('jobs', {'id': 'private-task-id', 'state': 'failed', 'message': 'secret-script', 'path': 'C:/private-name/recording.wav'})
+        response = self.client.get('/api/diagnostics')
+        self.assertEqual(response.status_code, 200)
+        for secret in ('private-task-id', 'secret-script', 'private-name'):
+            self.assertNotIn(secret, response.text)
+        self.assertEqual(response.json()['job_states'], {'failed': 1})
 
 
 if __name__ == '__main__':

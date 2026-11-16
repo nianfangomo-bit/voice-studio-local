@@ -10,10 +10,10 @@ import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
-from environment_selection import selected_runtime
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
+from environment_selection import selected_runtime
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -83,6 +83,7 @@ def main():
         bootstrap.parent.mkdir(parents=True, exist_ok=True)
         bootstrap.write_text(json.dumps({'runtime': str(runtime)}), encoding='utf-8')
     log = ROOT / 'data' / 'server.log'
+    log.parent.mkdir(parents=True, exist_ok=True)
     port = None
     for candidate in range(8791, 8821):
         with socket.socket() as probe:
