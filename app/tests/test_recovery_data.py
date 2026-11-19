@@ -213,6 +213,18 @@ class RecoveryDataTests(unittest.TestCase):
         self.assertEqual(after['segments'][0]['display'], '字幕')
         self.assertIn('音频', self.recovery_log(job))
 
+    # H. 记录缺失时同样留下恢复原因，并且不抛出异常阻断启动。
+    def test_h_missing_records_are_logged(self):
+        missing_dataset = self.job('preparation', 'no-such-dataset')
+        folder = self.progress(missing_dataset, {'message': '加载模型', 'rows': []})
+        self.s.ingest(missing_dataset, folder)
+        self.assertIn('不存在', self.recovery_log(missing_dataset))
+
+        missing_project = self.job('dub', 'no-such-project')
+        folder = self.progress(missing_project, {'message': '处理中', 'results': []})
+        self.s.ingest(missing_project, folder)
+        self.assertIn('不存在', self.recovery_log(missing_project))
+
 
 if __name__ == '__main__':
     unittest.main()

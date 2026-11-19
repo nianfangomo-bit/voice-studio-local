@@ -444,10 +444,13 @@ class Studio:
                     if isinstance(reports, list) and (reports or not ds.get('quality_reports')):
                         ds['quality_reports'] = reports
                     self.save('datasets', ds)
+                else:
+                    self.note_recovery_issue(j, folder, '素材库记录不存在，已跳过整理结果恢复')
             if kind in ('training', 'preparation'):
                 try:
                     latest = self.get('jobs', j['id'])
                 except ValueError:
+                    self.note_recovery_issue(j, folder, '任务记录不存在，进度无法写回')
                     return
                 latest.update(completed=progress.get('completed', 0), message=progress.get('message', '训练中'))
                 self.save('jobs', latest)
@@ -455,8 +458,10 @@ class Studio:
             try:
                 p = self.get('projects', j['project_id'])
             except ValueError:
+                self.note_recovery_issue(j, folder, '项目记录不存在，已跳过片段音频恢复')
                 return
             if not isinstance(p, dict):
+                self.note_recovery_issue(j, folder, '项目记录格式异常，已跳过片段音频恢复')
                 return
             results = progress.get('results')
             if not isinstance(results, list):
@@ -484,6 +489,7 @@ class Studio:
             try:
                 latest = self.get('jobs', j['id'])
             except ValueError:
+                self.note_recovery_issue(j, folder, '任务记录不存在，进度无法写回')
                 return
             latest.update(completed=len(results), message=progress.get('message', '处理中'))
             self.save('jobs', latest)
