@@ -537,7 +537,14 @@ class Studio:
                     self.wake.clear()
                     continue
                 self.run_job(job)
-                self.queue_backoff = 0.0
+                # 中文维护：正常失败的任务之间也退避，避免大量快速失败时形成高速循环。
+                latest = self.get('jobs', job['id'])
+                if isinstance(latest, dict) and latest.get('state') == 'failed':
+                    self.queue_backoff = min(max(self.QUEUE_MIN_BACKOFF, self.queue_backoff * 2),
+                                             self.QUEUE_MAX_BACKOFF)
+                    self.stopping.wait(self.queue_backoff)
+                else:
+                    self.queue_backoff = 0.0
             except Exception:
                 traceback.print_exc()
                 self.log_problem('queue-error', traceback.format_exc())
