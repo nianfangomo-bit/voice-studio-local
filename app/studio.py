@@ -18,6 +18,71 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 HIDDEN = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+# 中文维护：跨重启识别“同一工作进程”的持久化标记文件名。
+WORKER_MARKER_NAME = 'worker-current.json'
+
+
+# 中文维护：取进程身份（PID + 创建时间 + 可执行文件）。Windows 会复用 PID，
+# 因此不能只用 PID 判断身份；创建时间由内核在进程创建时写入，复用后必然不同。
+def process_identity(pid):
+    if not isinstance(pid, int) or pid <= 0:
+        return None
+    if os.name == 'nt':
+        import ctypes
+        from ctypes import wintypes
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.OpenProcess.restype = wintypes.HANDLE
+        kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel.GetProcessTimes.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.FILETIME),
+                                          ctypes.POINTER(wintypes.FILETIME),
+                                          ctypes.POINTER(wintypes.FILETIME),
+                                          ctypes.POINTER(wintypes.FILETIME)]
+        kernel.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD,
+                                                      wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+        kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        # PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE：即可读身份，也可判断是否已退出。
+        handle = kernel.OpenProcess(0x1000 | 0x00100000, False, pid)
+        if not handle:
+            return None
+        try:
+            created, exited, kernel_time, user_time = (wintypes.FILETIME() for _ in range(4))
+            if not kernel.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited),
+                                          ctypes.byref(kernel_time), ctypes.byref(user_time)):
+                return None
+            stamp = (created.dwHighDateTime << 32) | created.dwLowDateTime
+            size = wintypes.DWORD(32768)
+            buffer = ctypes.create_unicode_buffer(32768)
+            exe = buffer.value if kernel.QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)) else ''
+            # 中文维护：句柄仍可打开不代表进程还活着（Popen 持有的句柄会让进程对象短暂留存），
+            # 必须再确认它没有进入 signaled（已退出）状态。
+            running = kernel.WaitForSingleObject(handle, 0) == 0x102  # WAIT_TIMEOUT
+            return {'pid': pid, 'created': int(stamp), 'exe': exe, 'running': bool(running)}
+        finally:
+            kernel.CloseHandle(handle)
+    try:
+        stat = Path('/proc/%d/stat' % pid).read_text(encoding='utf-8')
+        fields = stat.rsplit(')', 1)[1].split()
+        state = fields[0]
+        stamp = int(fields[19])
+        exe = os.readlink('/proc/%d/exe' % pid)
+        return {'pid': pid, 'created': stamp, 'exe': exe, 'running': state not in ('Z', 'X')}
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+# 中文维护：按身份确认进程是否仍是“同一个”进程；PID 被复用时创建时间或路径不匹配即视为已退出。
+def process_alive(identity):
+    if not isinstance(identity, dict):
+        return False
+    pid = identity.get('pid')
+    current = process_identity(pid)
+    if not current or not current.get('running'):
+        return False
+    if identity.get('created') is not None and current.get('created') != identity.get('created'):
+        return False
+    if identity.get('exe') and current.get('exe') and identity['exe'].casefold() != current['exe'].casefold():
+        return False
+    return True
 
 
 # 中文维护：生成独立记录标识，避免文件名和不同任务冲突。
@@ -100,13 +165,18 @@ class Studio:
             try:
                 job.update(state='interrupted', message='上次运行中断；已有片段保留。请确认后重试。')
                 self.save('jobs', job)
-                self.ingest(job, self.root / 'jobs' / job['id'])
+                summary = self.ingest(job, self.root / 'jobs' / job['id'])
                 restored = self.get('jobs', job['id'])
-                restored['message'] = '上次运行中断；已恢复完成片段。请确认后重试。'
+                # 中文维护：按实际恢复结果说明（损坏、跳过、恢复 0 段时不再谎称“已恢复完成片段”）。
+                restored['message'] = self.recovery_message(job.get('kind'), summary)
                 self.save('jobs', restored)
             except Exception as exc:
                 traceback.print_exc()
                 self.mark_interrupted_after_recovery_error(job, exc)
+        # 中文维护：上次运行留下的工作进程标记；仍存活则继续暂停队列，避免跨重启并发占卡。
+        marker = self.read_worker_marker()
+        if marker:
+            self.adopt_worker_marker(marker)
         self.thread = None
 
     # 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。
@@ -405,22 +475,112 @@ class Studio:
             traceback.print_exc()
         self.log_problem('recovery', '任务 %s：%s' % (job.get('id'), reason))
 
-    # 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。
+    # 中文维护：按恢复摘要生成真实提示；恢复 0 段、进度损坏或被跳过时如实说明而不是谎称已恢复。
+    @staticmethod
+    def recovery_message(kind, summary):
+        summary = summary if isinstance(summary, dict) else {}
+        corrupt = bool(summary.get('corrupt'))
+        applied = summary.get('applied') or 0
+        skipped = summary.get('skipped') or 0
+        if kind == 'training':
+            return '上次运行中断；训练需回训练工作台重新确认计划后重试，旧检查点保留。'
+        if kind == 'preparation':
+            if applied:
+                return '上次运行中断；已恢复 %d 段整理结果，请逐段试听校对后重试。' % applied
+            if corrupt:
+                return '上次运行中断；进度记录损坏，未恢复整理结果，原有素材和录音保留。请确认后重试。'
+            if skipped:
+                return '上次运行中断；进度中的整理结果被跳过（与现有素材不一致或音频缺失），原有素材保留。请确认后重试。'
+            return '上次运行中断；没有可恢复的整理结果，原有素材保留。请确认后重试。'
+        if applied:
+            extra = '；另有 %d 条进度被跳过' % skipped if skipped else ''
+            return '上次运行中断；已恢复 %d 个已完成片段%s。请确认后重试。' % (applied, extra)
+        if corrupt:
+            return '上次运行中断；进度记录损坏，未恢复任何片段，已有录音和片段保留。请确认后重试。'
+        if skipped:
+            return '上次运行中断；%d 条进度结果无效已跳过，未恢复新片段。请确认后重试。' % skipped
+        return '上次运行中断；没有可恢复的进度，未恢复任何片段。请确认后重试。'
+
+    # 中文维护：把当前工作进程身份写入持久化标记，供服务重启后识别旧进程是否仍存活。
+    def note_worker_started(self, job, proc):
+        pid = getattr(proc, 'pid', None)
+        identity = process_identity(pid) or {'pid': pid, 'created': None, 'exe': ''}
+        marker = {'job_id': job.get('id') if isinstance(job, dict) else None,
+                  'pid': pid, 'created': identity.get('created'), 'exe': identity.get('exe'),
+                  'since': time.time()}
+        try:
+            atomic_json(self.root / WORKER_MARKER_NAME, marker)
+        except OSError:
+            traceback.print_exc()
+
+    # 中文维护：读取持久化工作进程标记；损坏时按无标记处理，不阻断启动。
+    def read_worker_marker(self):
+        path = self.root / WORKER_MARKER_NAME
+        if not path.is_file():
+            return None
+        try:
+            marker = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            return None
+        return marker if isinstance(marker, dict) else None
+
+    # 中文维护：删除持久化标记；文件不存在或暂被占用都不影响主流程。
+    def clear_worker_marker(self):
+        try:
+            (self.root / WORKER_MARKER_NAME).unlink(missing_ok=True)
+        except OSError:
+            traceback.print_exc()
+
+    # 中文维护：启动时接续上次工作进程：身份匹配才视为仍存活并暂停队列；否则按已退出清理标记。
+    def adopt_worker_marker(self, marker):
+        identity = {'pid': marker.get('pid'), 'created': marker.get('created'), 'exe': marker.get('exe')}
+        pid = marker.get('pid')
+        if not process_alive(identity):
+            self.clear_worker_marker()
+            self.log_problem('quarantine-cleared',
+                             '上次记录的工作进程 PID %s 已退出或已被复用（非同一进程），按已退出处理' % pid)
+            return False
+        job_id = marker.get('job_id')
+        prior = marker.get('prior_message') or ''
+        warning = ('上次任务的工作进程仍在运行（PID %s），为避免与它争用显卡，队列已暂停，不会启动新任务；'
+                   '请等待它结束或手动结束后重启软件。' % pid)
+        self.blocked = {'job_id': job_id, 'pid': pid, 'proc': None, 'identity': identity,
+                        'since': time.time(), 'reason': '启动时检测到上次工作进程仍在运行', 'prior_message': prior}
+        self.log_problem('quarantine-restored', warning)
+        if job_id:
+            try:
+                latest = self.get('jobs', job_id)
+                prior = prior or latest.get('message') or ''
+                separator = '' if prior.endswith(('。', '；', ';', '！', '!')) else '；'
+                latest['message'] = prior + separator + warning
+                self.save('jobs', latest)
+            except ValueError:
+                pass
+            marker['prior_message'] = prior
+            try:
+                atomic_json(self.root / WORKER_MARKER_NAME, marker)
+            except OSError:
+                traceback.print_exc()
+        self.blocked['prior_message'] = prior
+        return True
+
+    # 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。返回恢复摘要。
     def ingest(self, j, folder):
         progress_path = folder / 'progress.json'
         if not progress_path.exists():
-            return
+            return None
         # 中文维护：损坏的进度文件不能阻止启动或队列；保留原文件、已生成片段和旧导出。
         try:
             progress = json.loads(progress_path.read_text(encoding='utf-8'))
         except (OSError, ValueError) as exc:
             self.note_recovery_issue(j, folder, 'progress.json 无法解析：%s' % exc)
-            return
+            return {'kind': j.get('kind'), 'corrupt': True, 'applied': 0, 'skipped': 0}
         if not isinstance(progress, dict):
             self.note_recovery_issue(j, folder, 'progress.json 不是对象，已忽略')
-            return
+            return {'kind': j.get('kind'), 'corrupt': True, 'applied': 0, 'skipped': 0}
         with self.lock:
             kind = j.get('kind')
+            summary = {'kind': kind, 'corrupt': False, 'applied': 0, 'skipped': 0}
             if kind == 'preparation':
                 try:
                     ds = self.get('datasets', j['project_id'])
@@ -437,49 +597,60 @@ class Studio:
                         accepted, reason = self.validate_preparation_rows(ds, rows)
                         if accepted:
                             ds['rows'] = rows
+                            summary['applied'] = len(rows)
                         else:
                             # 中文维护：未通过校验的整理结果不得覆盖已有校对片段。
+                            summary['skipped'] = len(rows)
+                            summary['kept'] = bool(ds.get('rows'))
                             self.note_recovery_issue(j, folder, '未采用进度整理结果：' + reason)
                     reports = progress.get('quality_reports')
                     if isinstance(reports, list) and (reports or not ds.get('quality_reports')):
                         ds['quality_reports'] = reports
                     self.save('datasets', ds)
                 else:
+                    summary['missing'] = True
                     self.note_recovery_issue(j, folder, '素材库记录不存在，已跳过整理结果恢复')
             if kind in ('training', 'preparation'):
                 try:
                     latest = self.get('jobs', j['id'])
                 except ValueError:
                     self.note_recovery_issue(j, folder, '任务记录不存在，进度无法写回')
-                    return
+                    summary['missing'] = True
+                    return summary
                 latest.update(completed=progress.get('completed', 0), message=progress.get('message', '训练中'))
                 self.save('jobs', latest)
-                return
+                return summary
             try:
                 p = self.get('projects', j['project_id'])
             except ValueError:
                 self.note_recovery_issue(j, folder, '项目记录不存在，已跳过片段音频恢复')
-                return
+                summary['missing'] = True
+                return summary
             if not isinstance(p, dict):
                 self.note_recovery_issue(j, folder, '项目记录格式异常，已跳过片段音频恢复')
-                return
+                summary['missing'] = True
+                return summary
             results = progress.get('results')
             if not isinstance(results, list):
                 results = []
             segments = {s.get('id'): s for s in p.get('segments', []) if isinstance(s, dict)}
             for item in results:
                 if not isinstance(item, dict) or not isinstance(item.get('audio'), dict):
+                    summary['skipped'] += 1
                     continue
                 seg = segments.get(item.get('id'))
                 # 中文维护：进度与项目片段不一致时跳过该条，绝不改动已有片段或历史。
                 if seg is None:
+                    summary['skipped'] += 1
                     continue
                 audio = item['audio']
                 # 中文维护：音频不存在/不可读/格式不符时保留原有有效音频，并记录原因。
                 if not self.valid_segment_audio(audio):
+                    summary['skipped'] += 1
                     self.note_recovery_issue(j, folder, '片段 %s 的进度音频无效（不存在/不可读/格式不符），保留原音频'
                                              % item.get('id'))
                     continue
+                summary['applied'] += 1
                 if seg.get('audio') != audio:
                     if seg.get('audio'):
                         seg['history'].append(seg['audio'])
@@ -490,9 +661,10 @@ class Studio:
                 latest = self.get('jobs', j['id'])
             except ValueError:
                 self.note_recovery_issue(j, folder, '任务记录不存在，进度无法写回')
-                return
+                return summary
             latest.update(completed=len(results), message=progress.get('message', '处理中'))
             self.save('jobs', latest)
+            return summary
 
     # 中文维护：恢复失败时把任务留在中断态并记录原因，绝不向上抛出阻断启动。
     def mark_interrupted_after_recovery_error(self, job, reason=None):
@@ -591,24 +763,52 @@ class Studio:
     def enter_worker_quarantine(self, job, proc, reason):
         pid = getattr(proc, 'pid', None)
         job_id = job.get('id') if isinstance(job, dict) else None
+        prior = ''
+        if job_id:
+            try:
+                prior = self.get('jobs', job_id).get('message') or ''
+            except ValueError:
+                prior = ''
         message = ('工作进程未能确认退出（PID %s），队列已暂停，不会再启动新任务；'
                    '请等待该进程结束或手动结束后再重试。原因：%s' % (pid, reason))
         # 先落库失败原因，再对外暴露隔离标记，避免观察者看到“已隔离但状态仍取消中”。
         if job_id:
             self.save_job_state(job_id, state='failed', message=message, orphan_pid=pid, quarantine=True)
-        self.blocked = {'job_id': job_id, 'pid': pid, 'proc': proc, 'since': time.time(), 'reason': str(reason)}
+        # 中文维护：持久化进程身份；即使主服务重启，也能识别旧进程是否仍是同一个。
+        identity = process_identity(pid) or {'pid': pid, 'created': None, 'exe': ''}
+        marker = {'job_id': job_id, 'pid': pid, 'created': identity.get('created'),
+                  'exe': identity.get('exe'), 'since': time.time(), 'reason': str(reason),
+                  'prior_message': prior}
+        try:
+            atomic_json(self.root / WORKER_MARKER_NAME, marker)
+        except OSError:
+            traceback.print_exc()
+        self.blocked = {'job_id': job_id, 'pid': pid, 'proc': proc, 'identity': identity,
+                        'since': time.time(), 'reason': str(reason), 'prior_message': prior}
         self.log_problem('worker-quarantine', message)
 
-    # 中文维护：隔离期间只观察原有进程；确认退出后解封并让队列继续消费。
+    # 中文维护：隔离期间只观察原有进程；确认退出（含跨重启的身份核对）后解封并让队列继续消费。
     def release_quarantine_when_exited(self):
         info = self.blocked or {}
         proc = info.get('proc')
-        if proc is None or proc.poll() is not None:
+        if proc is not None:
+            exited = proc.poll() is not None
+        else:
+            # 中文维护：重启后没有进程句柄，只能按持久化身份核对，PID 复用不会被误判为存活。
+            exited = not process_alive(info.get('identity') or {})
+        if exited:
             self.blocked = None
             self.queue_backoff = 0.0
+            self.clear_worker_marker()
             self.log_problem('quarantine-cleared', 'PID %s 已确认退出，队列恢复' % info.get('pid'))
             if info.get('job_id'):
-                self.save_job_state(info['job_id'], message='残留工作进程已退出，队列已恢复；可重试该任务。')
+                prior = info.get('prior_message') or ''
+                message = '旧工作进程已退出，队列已恢复。'
+                if prior:
+                    message += prior
+                else:
+                    message += '中断任务需确认后重试。'
+                self.save_job_state(info['job_id'], message=message)
             return True
         self.stopping.wait(self.QUARANTINE_POLL)
         return False
@@ -676,6 +876,8 @@ class Studio:
                     worker_name = 'preparation_worker.py' if preparation_job else 'training_worker.py' if training_job else 'inference_worker.py'
                     proc = subprocess.Popen([str(runtime), '-I', '-X', 'utf8', '-B', str(ROOT / worker_name), str(folder / 'request.json')],
                         stdout=log, stderr=subprocess.STDOUT, env=env, creationflags=HIDDEN)
+                    # 中文维护：先持久化进程身份再收进度；主服务意外退出后新服务据此识别残留进程。
+                    self.note_worker_started(j, proc)
                     while proc.poll() is None:
                         self.ingest(j, folder)
                         if self.get('jobs', j['id'])['state'] == 'cancelling' or self.stopping.is_set():
@@ -685,6 +887,9 @@ class Studio:
                             break
                         time.sleep(.4)
                 self.ingest(j, folder)
+                # 中文维护：工作进程已结束（含取消已确认退出）才清除持久化标记。
+                if proc is not None:
+                    self.clear_worker_marker()
                 if self.get('jobs', j['id'])['state'] == 'cancelling' or self.stopping.is_set():
                     state, message = 'cancelled', '已停止；成功片段保留，可重试剩余内容。'
                 elif proc.returncode != 0:
@@ -721,6 +926,7 @@ class Studio:
         except Exception as e:
             # 中文维护：先确认旧工作进程确实退出；未确认则隔离队列，绝不启动下一个任务。
             if self.confirm_process_exit(proc):
+                self.clear_worker_marker()
                 self.save_job_state(j['id'], state='failed',
                                     message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
             else:
