@@ -10,6 +10,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import uuid
 import wave
 import zipfile
@@ -83,16 +84,19 @@ class Studio:
         with self.conn() as c:
             c.execute('CREATE TABLE IF NOT EXISTS records (kind TEXT, id TEXT, body TEXT, PRIMARY KEY(kind,id))')
         for job in self.all('jobs'):
-            if job['state'] in ('queued', 'running', 'cancelling'):
+            if not isinstance(job, dict) or job.get('state') not in ('queued', 'running', 'cancelling'):
+                continue
+            # 中文维护：单个任务的恢复失败不得阻止服务启动；任务保持中断并保留录音、片段和导出。
+            try:
                 job.update(state='interrupted', message='上次运行中断；已有片段保留。请确认后重试。')
                 self.save('jobs', job)
-                try:
-                    self.ingest(job, self.root / 'jobs' / job['id'])
-                    restored = self.get('jobs', job['id'])
-                    restored['message'] = '上次运行中断；已恢复完成片段。请确认后重试。'
-                    self.save('jobs', restored)
-                except (OSError, ValueError, KeyError):
-                    pass
+                self.ingest(job, self.root / 'jobs' / job['id'])
+                restored = self.get('jobs', job['id'])
+                restored['message'] = '上次运行中断；已恢复完成片段。请确认后重试。'
+                self.save('jobs', restored)
+            except Exception:
+                traceback.print_exc()
+                self.mark_interrupted_after_recovery_error(job)
         self.thread = None
 
     # 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。
@@ -338,26 +342,56 @@ class Studio:
         progress_path = folder / 'progress.json'
         if not progress_path.exists():
             return
-        progress = json.loads(progress_path.read_text(encoding='utf-8'))
+        # 中文维护：损坏的进度文件不能阻止启动或队列；保留原文件、已生成片段和旧导出。
+        try:
+            progress = json.loads(progress_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            return
+        if not isinstance(progress, dict):
+            return
         with self.lock:
-            if j.get('kind') == 'preparation':
-                ds = self.get('datasets', j['project_id'])
-                if ds.get('preparation_job') != j['id']:
-                    if ds['rows']:
-                        atomic_json(self.root / 'datasets' / ds['id'] / ('revision-' + str(ds['revision']) + '.json'), ds)
-                    ds['preparation_job'] = j['id']
-                    ds['revision'] += 1
-                ds['rows'] = progress.get('rows', [])
-                ds['quality_reports'] = progress.get('quality_reports', [])
-                self.save('datasets', ds)
-            if j.get('kind') in ('training', 'preparation'):
-                latest = self.get('jobs', j['id'])
+            kind = j.get('kind')
+            if kind == 'preparation':
+                try:
+                    ds = self.get('datasets', j['project_id'])
+                except ValueError:
+                    ds = None
+                if isinstance(ds, dict):
+                    if ds.get('preparation_job') != j['id']:
+                        if ds.get('rows'):
+                            atomic_json(self.root / 'datasets' / ds['id'] / ('revision-' + str(ds['revision']) + '.json'), ds)
+                        ds['preparation_job'] = j['id']
+                        ds['revision'] += 1
+                    if isinstance(progress.get('rows'), list):
+                        ds['rows'] = progress['rows']
+                    if isinstance(progress.get('quality_reports'), list):
+                        ds['quality_reports'] = progress['quality_reports']
+                    self.save('datasets', ds)
+            if kind in ('training', 'preparation'):
+                try:
+                    latest = self.get('jobs', j['id'])
+                except ValueError:
+                    return
                 latest.update(completed=progress.get('completed', 0), message=progress.get('message', '训练中'))
                 self.save('jobs', latest)
                 return
-            p = self.get('projects', j['project_id'])
-            for item in progress.get('results', []):
-                seg = next(s for s in p['segments'] if s['id'] == item['id'])
+            try:
+                p = self.get('projects', j['project_id'])
+            except ValueError:
+                return
+            if not isinstance(p, dict):
+                return
+            results = progress.get('results')
+            if not isinstance(results, list):
+                results = []
+            segments = {s.get('id'): s for s in p.get('segments', []) if isinstance(s, dict)}
+            for item in results:
+                if not isinstance(item, dict) or not isinstance(item.get('audio'), dict):
+                    continue
+                seg = segments.get(item.get('id'))
+                # 中文维护：进度与项目片段不一致时跳过该条，绝不改动已有片段或历史。
+                if seg is None:
+                    continue
                 audio = item['audio']
                 if seg.get('audio') != audio:
                     if seg.get('audio'):
@@ -365,9 +399,35 @@ class Studio:
                     seg['audio'] = audio
                     p['dirty'] = True
             self.save('projects', p)
-            latest = self.get('jobs', j['id'])
-            latest.update(completed=len(progress.get('results', [])), message=progress.get('message', '处理中'))
+            try:
+                latest = self.get('jobs', j['id'])
+            except ValueError:
+                return
+            latest.update(completed=len(results), message=progress.get('message', '处理中'))
             self.save('jobs', latest)
+
+    # 中文维护：恢复失败时把任务留在中断态并说明原因，绝不向上抛出阻断启动。
+    def mark_interrupted_after_recovery_error(self, job):
+        try:
+            latest = self.get('jobs', job['id'])
+            latest.update(state='interrupted',
+                          message='上次运行中断；恢复进度时出现异常，录音、片段和导出均已保留。请确认后重试。')
+            self.save('jobs', latest)
+        except Exception:
+            traceback.print_exc()
+
+    # 中文维护：队列层兜底；仅把仍在 running 的任务标失败，不产生自动重试或假完成。
+    def fail_job_after_worker_error(self, job):
+        if not isinstance(job, dict) or not job.get('id'):
+            return
+        try:
+            latest = self.get('jobs', job['id'])
+            if latest.get('state') == 'running':
+                latest.update(state='failed',
+                              message='处理任务时出现内部异常；已完成内容和日志已保留，请重试。')
+                self.save('jobs', latest)
+        except Exception:
+            traceback.print_exc()
 
     # 中文维护：启动单一后台消费线程；由服务入口负责避免重复实例。
     def start(self):
@@ -377,18 +437,27 @@ class Studio:
     # 中文维护：按创建时间串行消费队列，空闲时等待唤醒以避免忙轮询。
     def loop(self):
         while not self.stopping.is_set():
-            with self.lock:
-                jobs = sorted([j for j in self.all('jobs') if j['state'] == 'queued'], key=lambda j: j['created'])
-                if jobs:
-                    j = jobs[0]
-                    label = {'training':'训练', 'preparation':'切分转写'}.get(j.get('kind'), '配音')
-                    j.update(state='running', message='准备独立' + label + '进程')
-                    self.save('jobs', j)
-            if not jobs:
-                self.wake.wait(1)
-                self.wake.clear()
-                continue
-            self.run_job(j)
+            job = None
+            # 中文维护：单个任务或单次读取异常不得终止唯一消费线程，后续任务仍须执行。
+            try:
+                with self.lock:
+                    jobs = sorted([j for j in self.all('jobs') if isinstance(j, dict) and j.get('state') == 'queued'],
+                                  key=lambda j: j.get('created', 0))
+                    if jobs:
+                        job = jobs[0]
+                        label = {'training': '训练', 'preparation': '切分转写'}.get(job.get('kind'), '配音')
+                        job.update(state='running', message='准备独立' + label + '进程')
+                        self.save('jobs', job)
+                if job is None:
+                    self.wake.wait(1)
+                    self.wake.clear()
+                    continue
+                self.run_job(job)
+            except Exception:
+                traceback.print_exc()
+                self.fail_job_after_worker_error(job)
+                # 短暂退避，避免数据库或磁盘持续错误造成忙循环。
+                self.stopping.wait(0.2)
 
     # 中文维护：启动受管工作进程、接收进度和取消请求，验证结果后保存候选声线或成品。
     def run_job(self, j):
@@ -451,11 +520,18 @@ class Studio:
                 latest.update(state=state, message=message)
                 self.save('jobs', latest)
         except Exception as e:
+            # 中文维护：收尾动作自身失败也不能逃出，否则会杀死队列线程。
             if proc and proc.poll() is None:
-                self.stop_process(proc)
-            latest = self.get('jobs', j['id'])
-            latest.update(state='failed', message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
-            self.save('jobs', latest)
+                try:
+                    self.stop_process(proc)
+                except Exception:
+                    traceback.print_exc()
+            try:
+                latest = self.get('jobs', j['id'])
+                latest.update(state='failed', message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
+                self.save('jobs', latest)
+            except Exception:
+                traceback.print_exc()
 
     # 中文维护：仅停止传入任务进程及其子树，并等待退出，不能用于清理未知进程。
     @staticmethod
