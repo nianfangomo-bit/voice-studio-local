@@ -349,6 +349,62 @@ class Studio:
             return enqueue(self, j['project_id'])
         return self.enqueue(j['project_id'], j['mode'], j['segment_id'])
 
+    # 中文维护：判断整理结果是否可用；空结果只在原有素材也为空时接受，音频必须真实存在。
+    def validate_preparation_rows(self, dataset, rows):
+        existing = dataset.get('rows') if isinstance(dataset.get('rows'), list) else []
+        if not rows:
+            if existing:
+                return False, '进度中的整理结果为空，但素材库已有 %d 个片段，保留原数据' % len(existing)
+            return True, ''
+        for index, row in enumerate(rows, 1):
+            if not isinstance(row, dict):
+                return False, '第 %d 条整理结果不是对象' % index
+            for field in ('id', 'audio'):
+                if not isinstance(row.get(field), str) or not row.get(field):
+                    return False, '第 %d 条整理结果缺少 %s' % (index, field)
+            if not isinstance(row.get('text'), str):
+                return False, '第 %d 条整理结果缺少文本' % index
+            if isinstance(row.get('seconds'), bool) or not isinstance(row.get('seconds'), (int, float)):
+                return False, '第 %d 条整理结果缺少时长' % index
+            if not Path(row['audio']).is_file():
+                return False, '第 %d 条整理结果音频不存在：%s' % (index, row['audio'])
+        return True, ''
+
+    # 中文维护：只有文件真实存在、可解析且参数符合引擎约定时才接受进度里的音频。
+    def valid_segment_audio(self, audio):
+        if not isinstance(audio, dict):
+            return False
+        path = audio.get('path')
+        if not isinstance(path, str) or not path:
+            return False
+        if not isinstance(audio.get('fingerprint'), str) or not audio['fingerprint']:
+            return False
+        target = Path(path)
+        if not target.is_file() or target.suffix.lower() != '.wav':
+            return False
+        try:
+            with wave.open(str(target), 'rb') as handle:
+                if (handle.getnchannels(), handle.getsampwidth(), handle.getframerate()) != (1, 2, 32000):
+                    return False
+                if handle.getnframes() <= 0:
+                    return False
+        except (OSError, EOFError, wave.Error):
+            return False
+        if isinstance(audio.get('sha256'), str) and audio['sha256']:
+            return digest(target) == audio['sha256']
+        return True
+
+    # 中文维护：把恢复时跳过的原因写进任务目录与队列日志，便于排查且不影响主流程。
+    def note_recovery_issue(self, job, folder, reason):
+        try:
+            folder = Path(folder)
+            folder.mkdir(parents=True, exist_ok=True)
+            with (folder / 'recovery.log').open('a', encoding='utf-8') as handle:
+                handle.write('[%s] %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S'), reason))
+        except OSError:
+            traceback.print_exc()
+        self.log_problem('recovery', '任务 %s：%s' % (job.get('id'), reason))
+
     # 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。
     def ingest(self, j, folder):
         progress_path = folder / 'progress.json'
@@ -357,9 +413,11 @@ class Studio:
         # 中文维护：损坏的进度文件不能阻止启动或队列；保留原文件、已生成片段和旧导出。
         try:
             progress = json.loads(progress_path.read_text(encoding='utf-8'))
-        except (OSError, ValueError):
+        except (OSError, ValueError) as exc:
+            self.note_recovery_issue(j, folder, 'progress.json 无法解析：%s' % exc)
             return
         if not isinstance(progress, dict):
+            self.note_recovery_issue(j, folder, 'progress.json 不是对象，已忽略')
             return
         with self.lock:
             kind = j.get('kind')
@@ -374,10 +432,17 @@ class Studio:
                             atomic_json(self.root / 'datasets' / ds['id'] / ('revision-' + str(ds['revision']) + '.json'), ds)
                         ds['preparation_job'] = j['id']
                         ds['revision'] += 1
-                    if isinstance(progress.get('rows'), list):
-                        ds['rows'] = progress['rows']
-                    if isinstance(progress.get('quality_reports'), list):
-                        ds['quality_reports'] = progress['quality_reports']
+                    rows = progress.get('rows')
+                    if isinstance(rows, list):
+                        accepted, reason = self.validate_preparation_rows(ds, rows)
+                        if accepted:
+                            ds['rows'] = rows
+                        else:
+                            # 中文维护：未通过校验的整理结果不得覆盖已有校对片段。
+                            self.note_recovery_issue(j, folder, '未采用进度整理结果：' + reason)
+                    reports = progress.get('quality_reports')
+                    if isinstance(reports, list) and (reports or not ds.get('quality_reports')):
+                        ds['quality_reports'] = reports
                     self.save('datasets', ds)
             if kind in ('training', 'preparation'):
                 try:
@@ -405,6 +470,11 @@ class Studio:
                 if seg is None:
                     continue
                 audio = item['audio']
+                # 中文维护：音频不存在/不可读/格式不符时保留原有有效音频，并记录原因。
+                if not self.valid_segment_audio(audio):
+                    self.note_recovery_issue(j, folder, '片段 %s 的进度音频无效（不存在/不可读/格式不符），保留原音频'
+                                             % item.get('id'))
+                    continue
                 if seg.get('audio') != audio:
                     if seg.get('audio'):
                         seg['history'].append(seg['audio'])

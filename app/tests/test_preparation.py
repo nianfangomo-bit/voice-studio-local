@@ -62,7 +62,15 @@ class PreparationTests(unittest.TestCase):
         job = {'id':'job1','kind':'preparation','project_id':self.ds['id'], 'state':'running'}
         self.s.save('jobs', job)
         folder = self.s.root / 'jobs/job1'
-        atomic_json(folder/'progress.json', {'rows':[{'id':'new'}], 'completed':1})
+        # 中文维护：只有结构完整且音频真实存在的整理结果才会被恢复逻辑接受。
+        import wave
+        folder.mkdir(parents=True, exist_ok=True)
+        wav = folder / 'new.wav'
+        with wave.open(str(wav), 'wb') as handle:
+            handle.setparams((1, 2, 32000, 0, 'NONE', 'not compressed'))
+            handle.writeframes(b'\x00\x00' * 3200)
+        atomic_json(folder/'progress.json', {'rows':[{'id':'new', 'text':'新文本', 'audio':str(wav),
+                                                      'seconds':0.1, 'hash':'fixture'}], 'completed':1})
         self.s.ingest(job, folder)
         self.assertEqual(self.s.get('datasets', self.ds['id'])['rows'][0]['id'], 'new')
         old = json.loads((self.s.root/'datasets'/self.ds['id']/'revision-1.json').read_text(encoding='utf-8'))
