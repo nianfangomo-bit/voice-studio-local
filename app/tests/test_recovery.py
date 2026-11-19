@@ -22,7 +22,7 @@ from studio import Studio, uid  # noqa: E402
 
 
 class FakeProc:
-    """假工作进程：poll 永远返回未结束，用于让 run_job 停在取消/收尾路径。"""
+    """假工作进程：默认 poll 返回未结束；把 returncode 置为 0 表示“旧进程已退出”。"""
 
     instances = []
 
@@ -32,7 +32,7 @@ class FakeProc:
         FakeProc.instances.append(self)
 
     def poll(self):
-        return None
+        return self.returncode
 
 
 # 中文维护：回收引用后清理临时目录；Windows 文件句柄短暂占用时最多重试五次。
@@ -273,9 +273,11 @@ class QueueResilienceTests(unittest.TestCase):
         self.assertTrue(raised)
         self.assertTrue(self.s.thread.is_alive())
 
-    # 核心复现：run_job 的 except 收尾动作自身抛异常（历史上会杀死消费线程）。
-    def test_error_cleanup_raising_does_not_stop_queue(self):
+    # 核心复现：run_job 收尾时进程仍未退出 → 队列隔离，第二个任务不得启动，旧进程退出后恢复。
+    def test_error_cleanup_raising_quarantines_queue(self):
         first, second = self.jobs
+        self.s.STOP_TIMEOUT = 0.3
+        self.s.QUARANTINE_POLL = 0.05
         runtime = write_wav(Path(self.temp.name) / 'runtime.bin', frames=100)
         for job, segment in ((first, 's1'), (second, 's2')):
             record = self.s.get('jobs', job['id'])
@@ -296,11 +298,14 @@ class QueueResilienceTests(unittest.TestCase):
         self.s.stop_process = failing_stop
         with mock.patch('studio.subprocess.Popen', FakeProc):
             self.s.start()
-            self.assertTrue(self.wait_for(lambda: len(FakeProc.instances) >= 2))
+            self.assertTrue(self.wait_for(lambda: self.s.blocked is not None, timeout=10))
+            self.assertTrue(self.wait_for(lambda: self.s.get('jobs', first['id'])['state'] == 'failed', timeout=10))
             self.assertTrue(self.s.thread.is_alive())
-            self.assertEqual(len(FakeProc.instances), 2)
-            self.assertEqual(self.s.get('jobs', first['id'])['state'], 'failed')
-            self.assertEqual(self.s.get('jobs', second['id'])['state'], 'failed')
+            self.assertEqual(len(FakeProc.instances), 1)
+            self.assertEqual(self.s.get('jobs', second['id'])['state'], 'queued')
+            # 旧进程最终退出后，隔离解除并允许继续消费。
+            FakeProc.instances[0].returncode = 0
+            self.assertTrue(self.wait_for(lambda: self.s.blocked is None, timeout=10))
 
 
 if __name__ == '__main__':

@@ -73,6 +73,12 @@ def require_file(value, suffix=None):
 
 
 class Studio:
+    # 中文维护：进程收尾与队列异常退避参数；可在测试中覆盖，生产默认值保持保守。
+    STOP_TIMEOUT = 20.0
+    QUARANTINE_POLL = 1.0
+    QUEUE_MIN_BACKOFF = 0.2
+    QUEUE_MAX_BACKOFF = 5.0
+
     # 中文维护：初始化独立存储和锁，将上次未结束任务标为中断并尝试恢复已完成片段。
     def __init__(self, root=None):
         self.root = Path(root or ROOT / 'data').resolve()
@@ -81,6 +87,10 @@ class Studio:
         self.wake = threading.Event()
         self.stopping = threading.Event()
         self.db = self.root / 'studio.sqlite'
+        # 中文维护：blocked 表示有工作进程未能确认退出；此时队列不得启动任何新任务。
+        self.blocked = None
+        self.queue_backoff = 0.0
+        self.pending_state = {}
         with self.conn() as c:
             c.execute('CREATE TABLE IF NOT EXISTS records (kind TEXT, id TEXT, body TEXT, PRIMARY KEY(kind,id))')
         for job in self.all('jobs'):
@@ -94,9 +104,9 @@ class Studio:
                 restored = self.get('jobs', job['id'])
                 restored['message'] = '上次运行中断；已恢复完成片段。请确认后重试。'
                 self.save('jobs', restored)
-            except Exception:
+            except Exception as exc:
                 traceback.print_exc()
-                self.mark_interrupted_after_recovery_error(job)
+                self.mark_interrupted_after_recovery_error(job, exc)
         self.thread = None
 
     # 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。
@@ -234,8 +244,10 @@ class Studio:
                  'engine_hash': s['engine_hash'], 'engine_version': s['version'], 'created': time.time()}
         return self.save('voices', voice)
 
-    # 中文维护：检查全局或指定项目是否存在排队、运行或取消中的任务。
+    # 中文维护：检查全局或指定项目是否存在排队、运行、取消中的任务；隔离期间一律视为忙。
     def busy(self, project=None):
+        if self.blocked:
+            return True
         return any(j['state'] in ('queued', 'running', 'cancelling') and (not project or j['project_id'] == project)
                    for j in self.all('jobs'))
 
@@ -406,15 +418,13 @@ class Studio:
             latest.update(completed=len(results), message=progress.get('message', '处理中'))
             self.save('jobs', latest)
 
-    # 中文维护：恢复失败时把任务留在中断态并说明原因，绝不向上抛出阻断启动。
-    def mark_interrupted_after_recovery_error(self, job):
-        try:
-            latest = self.get('jobs', job['id'])
-            latest.update(state='interrupted',
-                          message='上次运行中断；恢复进度时出现异常，录音、片段和导出均已保留。请确认后重试。')
-            self.save('jobs', latest)
-        except Exception:
-            traceback.print_exc()
+    # 中文维护：恢复失败时把任务留在中断态并记录原因，绝不向上抛出阻断启动。
+    def mark_interrupted_after_recovery_error(self, job, reason=None):
+        detail = '%s: %s' % (type(reason).__name__, reason) if reason is not None else '未知异常'
+        self.log_problem('recovery', '任务 %s 恢复失败：%s' % (job.get('id'), detail))
+        self.save_job_state(job.get('id'), state='interrupted',
+                            message='上次运行中断；恢复进度时出现异常（%s），录音、片段和导出均已保留。请确认后重试。'
+                                    % (type(reason).__name__ if reason is not None else '未知'))
 
     # 中文维护：队列层兜底；仅把仍在 running 的任务标失败，不产生自动重试或假完成。
     def fail_job_after_worker_error(self, job):
@@ -423,11 +433,10 @@ class Studio:
         try:
             latest = self.get('jobs', job['id'])
             if latest.get('state') == 'running':
-                latest.update(state='failed',
-                              message='处理任务时出现内部异常；已完成内容和日志已保留，请重试。')
-                self.save('jobs', latest)
+                self.save_job_state(job['id'], state='failed',
+                                    message='处理任务时出现内部异常；已完成内容和日志已保留，请重试。')
         except Exception:
-            traceback.print_exc()
+            self.log_problem('queue-error', traceback.format_exc())
 
     # 中文维护：启动单一后台消费线程；由服务入口负责避免重复实例。
     def start(self):
@@ -437,6 +446,11 @@ class Studio:
     # 中文维护：按创建时间串行消费队列，空闲时等待唤醒以避免忙轮询。
     def loop(self):
         while not self.stopping.is_set():
+            if self.blocked:
+                # 中文维护：旧工作进程未确认退出前，绝不启动下一个任务，也不再消费队列。
+                self.release_quarantine_when_exited()
+                self.retry_pending_state()
+                continue
             job = None
             # 中文维护：单个任务或单次读取异常不得终止唯一消费线程，后续任务仍须执行。
             try:
@@ -453,11 +467,111 @@ class Studio:
                     self.wake.clear()
                     continue
                 self.run_job(job)
+                self.queue_backoff = 0.0
             except Exception:
                 traceback.print_exc()
+                self.log_problem('queue-error', traceback.format_exc())
                 self.fail_job_after_worker_error(job)
-                # 短暂退避，避免数据库或磁盘持续错误造成忙循环。
-                self.stopping.wait(0.2)
+                # 中文维护：持久性错误指数退避，避免每 0.2 秒无限重试；成功一轮后重置。
+                self.queue_backoff = min(max(self.QUEUE_MIN_BACKOFF, self.queue_backoff * 2),
+                                         self.QUEUE_MAX_BACKOFF)
+                self.stopping.wait(self.queue_backoff)
+            finally:
+                self.retry_pending_state()
+
+    # 中文维护：确认进程确实退出才返回 True；停止动作失败或超时都不算退出。
+    def confirm_process_exit(self, proc, timeout=None, stop=None):
+        if proc is None:
+            return True
+        if proc.poll() is not None:
+            return True
+        stop = stop or self.stop_process
+        timeout = self.STOP_TIMEOUT if timeout is None else timeout
+        deadline = time.time() + timeout
+        while True:
+            try:
+                stop(proc)
+            except Exception:
+                # 中文维护：终止命令失败不代表进程已退出，继续以 poll 结果为准。
+                self.log_problem('worker-stop', traceback.format_exc())
+            grace_end = min(deadline, time.time() + 0.5)
+            while time.time() < grace_end:
+                if proc.poll() is not None:
+                    return True
+                time.sleep(0.05)
+            if proc.poll() is not None:
+                return True
+            if time.time() >= deadline:
+                return False
+
+    # 中文维护：进入隔离态；在旧进程确认退出前，队列不启动任何新任务。
+    def enter_worker_quarantine(self, job, proc, reason):
+        pid = getattr(proc, 'pid', None)
+        job_id = job.get('id') if isinstance(job, dict) else None
+        message = ('工作进程未能确认退出（PID %s），队列已暂停，不会再启动新任务；'
+                   '请等待该进程结束或手动结束后再重试。原因：%s' % (pid, reason))
+        # 先落库失败原因，再对外暴露隔离标记，避免观察者看到“已隔离但状态仍取消中”。
+        if job_id:
+            self.save_job_state(job_id, state='failed', message=message, orphan_pid=pid, quarantine=True)
+        self.blocked = {'job_id': job_id, 'pid': pid, 'proc': proc, 'since': time.time(), 'reason': str(reason)}
+        self.log_problem('worker-quarantine', message)
+
+    # 中文维护：隔离期间只观察原有进程；确认退出后解封并让队列继续消费。
+    def release_quarantine_when_exited(self):
+        info = self.blocked or {}
+        proc = info.get('proc')
+        if proc is None or proc.poll() is not None:
+            self.blocked = None
+            self.queue_backoff = 0.0
+            self.log_problem('quarantine-cleared', 'PID %s 已确认退出，队列恢复' % info.get('pid'))
+            if info.get('job_id'):
+                self.save_job_state(info['job_id'], message='残留工作进程已退出，队列已恢复；可重试该任务。')
+            return True
+        self.stopping.wait(self.QUARANTINE_POLL)
+        return False
+
+    # 中文维护：任务状态写回失败时有限重试，并登记待补偿，避免任务永久停留在 running。
+    def save_job_state(self, job_id, **updates):
+        if not job_id:
+            return False
+        for attempt in range(3):
+            try:
+                latest = self.get('jobs', job_id)
+                latest.update(updates)
+                self.save('jobs', latest)
+                self.pending_state.pop(job_id, None)
+                return True
+            except Exception:
+                self.log_problem('job-state', traceback.format_exc())
+                if attempt < 2:
+                    time.sleep(0.05 * (attempt + 1))
+        self.pending_state[job_id] = updates
+        return False
+
+    # 中文维护：每轮队列消费后补偿一次未写回的状态；失败只记录，不在同一轮内反复重试。
+    def retry_pending_state(self):
+        for job_id, updates in list(self.pending_state.items()):
+            try:
+                latest = self.get('jobs', job_id)
+                latest.update(updates)
+                self.save('jobs', latest)
+                self.pending_state.pop(job_id, None)
+                self.log_problem('job-state-recovered', '任务状态已补偿写回：' + job_id)
+            except Exception:
+                self.log_problem('job-state-retry', traceback.format_exc())
+                return
+
+    # 中文维护：把队列/进程异常追加到本机日志（超出 2 MB 轮转），日志故障不影响主流程。
+    def log_problem(self, kind, detail):
+        line = '[%s] %s %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S'), kind, str(detail).replace('\n', '\n    '))
+        try:
+            path = self.root / 'queue-errors.log'
+            with path.open('a', encoding='utf-8') as handle:
+                handle.write(line)
+            if path.stat().st_size > 2 * 1024 * 1024:
+                path.replace(path.with_name('queue-errors.log.1'))
+        except OSError:
+            traceback.print_exc()
 
     # 中文维护：启动受管工作进程、接收进度和取消请求，验证结果后保存候选声线或成品。
     def run_job(self, j):
@@ -482,7 +596,9 @@ class Studio:
                     while proc.poll() is None:
                         self.ingest(j, folder)
                         if self.get('jobs', j['id'])['state'] == 'cancelling' or self.stopping.is_set():
-                            self.stop_process(proc)
+                            # 中文维护：取消必须先确认退出，未确认则交由外层进入隔离。
+                            if not self.confirm_process_exit(proc):
+                                raise RuntimeError('取消时工作进程未能确认退出')
                             break
                         time.sleep(.4)
                 self.ingest(j, folder)
@@ -520,27 +636,21 @@ class Studio:
                 latest.update(state=state, message=message)
                 self.save('jobs', latest)
         except Exception as e:
-            # 中文维护：收尾动作自身失败也不能逃出，否则会杀死队列线程。
-            if proc and proc.poll() is None:
-                try:
-                    self.stop_process(proc)
-                except Exception:
-                    traceback.print_exc()
-            try:
-                latest = self.get('jobs', j['id'])
-                latest.update(state='failed', message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
-                self.save('jobs', latest)
-            except Exception:
-                traceback.print_exc()
+            # 中文维护：先确认旧工作进程确实退出；未确认则隔离队列，绝不启动下一个任务。
+            if self.confirm_process_exit(proc):
+                self.save_job_state(j['id'], state='failed',
+                                    message=str(e) + ' 已完成内容保留，请检查环境/日志后重试。')
+            else:
+                self.enter_worker_quarantine(j, proc, str(e))
 
-    # 中文维护：仅停止传入任务进程及其子树，并等待退出，不能用于清理未知进程。
+    # 中文维护：仅停止传入任务进程及其子树；调用方必须再用 poll 确认是否真的退出。
     @staticmethod
-    def stop_process(proc):
+    def stop_process(proc, timeout=20):
         if os.name == 'nt':
             subprocess.run(['taskkill', '/PID', str(proc.pid), '/T', '/F'], capture_output=True, creationflags=HIDDEN)
         else:
             proc.terminate()
-        proc.wait(timeout=20)
+        proc.wait(timeout=timeout)
 
     # 中文维护：按真实采样数合并音频、字幕和时间线，创建不可变导出版本且保留旧成品。
     def export(self, p):
