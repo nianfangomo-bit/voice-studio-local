@@ -15,6 +15,9 @@ from studio import atomic_json, digest, load_legacy, HIDDEN
 def main(request_path):
     request = json.loads(Path(request_path).read_text(encoding='utf-8'))
     folder = Path(request['job_dir'])
+    # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程。
+    from worker_lease import hold as hold_lease
+    hold_lease(request.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
     results = []
 
     # 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。

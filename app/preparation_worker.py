@@ -59,6 +59,9 @@ def main(request_path):
     engine = Path(s['engine'])
     rows, reports = [], []
     complete = 0
+    # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程。
+    from worker_lease import hold as hold_lease
+    hold_lease(req.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
 
     if os.name == 'nt':
         import ctypes, threading

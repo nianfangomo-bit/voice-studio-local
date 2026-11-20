@@ -18,15 +18,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 HIDDEN = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-# 中文维护：跨重启识别“同一工作进程”的持久化标记文件名。
+# 中文维护：跨重启识别“同一工作进程”的持久化标记文件。
 WORKER_MARKER_NAME = 'worker-current.json'
+WORKER_MARKER_BACKUP = 'worker-current.json.bak'
+WORKER_JOB_RECORD = 'worker.json'
+WORKER_LEASE_NAME = 'worker.lock'
 
 
-# 中文维护：取进程身份（PID + 创建时间 + 可执行文件）。Windows 会复用 PID，
-# 因此不能只用 PID 判断身份；创建时间由内核在进程创建时写入，复用后必然不同。
-def process_identity(pid):
+# 中文维护：探测进程状态，必须区分三态：alive / dead / unknown。
+# unknown（权限不足、查询失败、句柄异常）绝不能当成“已退出”，否则会放行队列。
+def process_probe(pid):
     if not isinstance(pid, int) or pid <= 0:
-        return None
+        return {'state': 'dead', 'identity': None, 'detail': '没有有效的 PID'}
     if os.name == 'nt':
         import ctypes
         from ctypes import wintypes
@@ -43,46 +46,106 @@ def process_identity(pid):
         # PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE：即可读身份，也可判断是否已退出。
         handle = kernel.OpenProcess(0x1000 | 0x00100000, False, pid)
         if not handle:
-            return None
+            error = ctypes.get_last_error()
+            if error == 87:  # ERROR_INVALID_PARAMETER：PID 不存在
+                return {'state': 'dead', 'identity': None, 'detail': '进程不存在（PID %s）' % pid}
+            if error == 5:  # ERROR_ACCESS_DENIED：进程可能存在，但不能查询
+                return {'state': 'unknown', 'identity': None, 'detail': '拒绝访问进程（错误 5）'}
+            return {'state': 'unknown', 'identity': None, 'detail': '无法打开进程（错误 %s）' % error}
         try:
             created, exited, kernel_time, user_time = (wintypes.FILETIME() for _ in range(4))
             if not kernel.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited),
                                           ctypes.byref(kernel_time), ctypes.byref(user_time)):
-                return None
+                return {'state': 'unknown', 'identity': None, 'detail': '无法读取进程创建时间'}
             stamp = (created.dwHighDateTime << 32) | created.dwLowDateTime
             size = wintypes.DWORD(32768)
             buffer = ctypes.create_unicode_buffer(32768)
             exe = buffer.value if kernel.QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)) else ''
-            # 中文维护：句柄仍可打开不代表进程还活着（Popen 持有的句柄会让进程对象短暂留存），
-            # 必须再确认它没有进入 signaled（已退出）状态。
-            running = kernel.WaitForSingleObject(handle, 0) == 0x102  # WAIT_TIMEOUT
-            return {'pid': pid, 'created': int(stamp), 'exe': exe, 'running': bool(running)}
+            waited = kernel.WaitForSingleObject(handle, 0)
+            if waited == 0:  # WAIT_OBJECT_0：已退出
+                return {'state': 'dead', 'identity': None, 'detail': '进程已退出'}
+            if waited != 0x102:  # 非 WAIT_TIMEOUT：无法确认运行状态
+                return {'state': 'unknown', 'identity': None, 'detail': '无法确认进程运行状态（%s）' % waited}
+            identity = {'pid': pid, 'created': int(stamp), 'exe': exe}
+            return {'state': 'alive', 'identity': identity, 'detail': ''}
         finally:
             kernel.CloseHandle(handle)
     try:
         stat = Path('/proc/%d/stat' % pid).read_text(encoding='utf-8')
+    except FileNotFoundError:
+        return {'state': 'dead', 'identity': None, 'detail': '进程不存在（PID %s）' % pid}
+    except PermissionError:
+        return {'state': 'unknown', 'identity': None, 'detail': '拒绝访问进程'}
+    except OSError as exc:
+        return {'state': 'unknown', 'identity': None, 'detail': '无法读取进程状态：%s' % exc}
+    try:
         fields = stat.rsplit(')', 1)[1].split()
         state = fields[0]
         stamp = int(fields[19])
         exe = os.readlink('/proc/%d/exe' % pid)
-        return {'pid': pid, 'created': stamp, 'exe': exe, 'running': state not in ('Z', 'X')}
-    except (OSError, ValueError, IndexError):
-        return None
+    except (OSError, ValueError, IndexError) as exc:
+        return {'state': 'unknown', 'identity': None, 'detail': '无法解析进程状态：%s' % exc}
+    if state in ('Z', 'X'):
+        return {'state': 'dead', 'identity': None, 'detail': '进程已退出'}
+    return {'state': 'alive', 'identity': {'pid': pid, 'created': stamp, 'exe': exe}, 'detail': ''}
 
 
-# 中文维护：按身份确认进程是否仍是“同一个”进程；PID 被复用时创建时间或路径不匹配即视为已退出。
-def process_alive(identity):
-    if not isinstance(identity, dict):
-        return False
-    pid = identity.get('pid')
-    current = process_identity(pid)
-    if not current or not current.get('running'):
-        return False
-    if identity.get('created') is not None and current.get('created') != identity.get('created'):
-        return False
+# 中文维护：取进程身份；查询失败返回 None（调用方需按 unknown 处理，不能当作已退出）。
+def process_identity(pid):
+    probe = process_probe(pid)
+    return probe['identity'] if probe['state'] == 'alive' else None
+
+
+# 中文维护：按身份确认进程是否仍是“同一个”进程；返回 (状态, 原因)，状态可为 alive/dead/unknown。
+def process_state(identity):
+    if not isinstance(identity, dict) or not isinstance(identity.get('pid'), int):
+        return 'unknown', '缺少可核对的进程身份'
+    probe = process_probe(identity['pid'])
+    if probe['state'] != 'alive':
+        return probe['state'], probe['detail']
+    current = probe['identity']
+    if identity.get('created') is not None and current.get('created') != identity['created']:
+        return 'dead', 'PID 已被复用（创建时间不同）'
     if identity.get('exe') and current.get('exe') and identity['exe'].casefold() != current['exe'].casefold():
-        return False
-    return True
+        return 'dead', 'PID 已被复用（可执行路径不同）'
+    return 'alive', ''
+
+
+# 中文维护：兼容旧调用；只有确认存活才返回 True，unknown 不再等同于退出。
+def process_alive(identity):
+    return process_state(identity)[0] == 'alive'
+
+
+# 中文维护：工作进程运行租约。进程存活期间持锁，主服务重启后即使没有 PID 记录也能判断是否仍有进程。
+def lease_state(path):
+    path = Path(path)
+    try:
+        handle = path.open('a+b')
+    except OSError as exc:
+        return 'unknown', '无法打开租约文件：%s' % exc
+    try:
+        handle.seek(0)
+        if os.name == 'nt':
+            import msvcrt
+            try:
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError:
+                return 'locked', '运行租约被占用'
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            return 'free', ''
+        import fcntl
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            return 'locked', '运行租约被占用'
+        fcntl.flock(handle, fcntl.LOCK_UN)
+        return 'free', ''
+    except OSError as exc:
+        return 'unknown', '无法检查运行租约：%s' % exc
+    finally:
+        handle.close()
+
+
 
 
 # 中文维护：生成独立记录标识，避免文件名和不同任务冲突。
@@ -143,6 +206,10 @@ class Studio:
     QUARANTINE_POLL = 1.0
     QUEUE_MIN_BACKOFF = 0.2
     QUEUE_MAX_BACKOFF = 5.0
+    # 中文维护：启动意图记录没有 PID 时，等待租约是否被占用的观察窗口（秒）。
+    STARTUP_GRACE = 5.0
+    # 中文维护：unknown 状态复查日志的节流间隔（秒），避免每秒刷屏。
+    UNKNOWN_LOG_INTERVAL = 30.0
 
     # 中文维护：初始化独立存储和锁，将上次未结束任务标为中断并尝试恢复已完成片段。
     def __init__(self, root=None):
@@ -173,10 +240,8 @@ class Studio:
             except Exception as exc:
                 traceback.print_exc()
                 self.mark_interrupted_after_recovery_error(job, exc)
-        # 中文维护：上次运行留下的工作进程标记；仍存活则继续暂停队列，避免跨重启并发占卡。
-        marker = self.read_worker_marker()
-        if marker:
-            self.adopt_worker_marker(marker)
+        # 中文维护：上次运行留下的工作进程记录/租约；存活、未知或损坏都继续暂停队列，避免并发占卡。
+        self.adopt_orphan_records()
         self.thread = None
 
     # 中文维护：打开带 WAL 的数据库连接，调用者用上下文管理事务。
@@ -501,52 +566,182 @@ class Studio:
             return '上次运行中断；%d 条进度结果无效已跳过，未恢复新片段。请确认后重试。' % skipped
         return '上次运行中断；没有可恢复的进度，未恢复任何片段。请确认后重试。'
 
-    # 中文维护：把当前工作进程身份写入持久化标记，供服务重启后识别旧进程是否仍存活。
+    # 中文维护：标记文件位置（主文件 + 备份），任一可读即可恢复身份。
+    def marker_paths(self):
+        return [self.root / WORKER_MARKER_NAME, self.root / WORKER_MARKER_BACKUP]
+
+    # 中文维护：任务目录里的冗余身份记录，标记文件全部损坏时仍可核对。
+    def job_marker_path(self, job_id):
+        return self.root / 'jobs' / str(job_id) / WORKER_JOB_RECORD
+
+    # 中文维护：从任意记录中提取可核对的进程身份；只有“启动意图”等无 PID 记录返回 None。
+    @staticmethod
+    def marker_identity(marker):
+        if not isinstance(marker, dict):
+            return None
+        pid = marker.get('pid')
+        if not isinstance(pid, int) or pid <= 0:
+            return None
+        return {'pid': pid, 'created': marker.get('created'), 'exe': marker.get('exe') or ''}
+
+    # 中文维护：先写“进程即将启动”的意图记录，再启动进程；写盘失败则拒绝启动，避免遗留不可追踪进程。
+    def begin_worker_start(self, job):
+        job_id = job.get('id') if isinstance(job, dict) else None
+        lease_path = self.root / WORKER_LEASE_NAME
+        try:
+            lease_path.open('a+b').close()
+        except OSError as exc:
+            raise RuntimeError('无法创建运行租约（%s），本次未启动任务。' % exc)
+        try:
+            prior = self.get('jobs', job_id).get('message') or '' if job_id else ''
+        except ValueError:
+            prior = ''
+        marker = {'schema': 2, 'state': 'starting', 'job_id': job_id,
+                  'lease': str(lease_path), 'since': time.time(), 'prior_message': prior}
+        try:
+            self.write_worker_marker(marker, hard=True)
+        except OSError as exc:
+            self.log_problem('worker-start', traceback.format_exc())
+            raise RuntimeError('无法记录工作进程身份（%s），为避免留下无法追踪的进程，本次未启动任务。' % exc)
+        return marker
+
+    # 中文维护：写入标记及冗余副本；hard=True 时主文件失败必须抛错（调用方据此拒绝启动进程）。
+    def write_worker_marker(self, marker, hard=False):
+        job_id = marker.get('job_id')
+        targets = list(self.marker_paths())
+        if job_id:
+            targets.append(self.job_marker_path(job_id))
+        failures = []
+        for index, path in enumerate(targets):
+            try:
+                atomic_json(path, marker)
+            except OSError as exc:
+                failures.append('%s: %s' % (path.name, exc))
+                if index == 0 and hard:
+                    raise
+                traceback.print_exc()
+        if failures and not hard:
+            self.log_problem('worker-marker', '工作进程标记部分写入失败：%s' % '; '.join(failures))
+        return True
+
+    # 中文维护：进程启动后写入真实身份；写失败只记录并保留意图记录与运行租约，不沿用旧代码“无记录运行”。
     def note_worker_started(self, job, proc):
         pid = getattr(proc, 'pid', None)
         identity = process_identity(pid) or {'pid': pid, 'created': None, 'exe': ''}
-        marker = {'job_id': job.get('id') if isinstance(job, dict) else None,
+        job_id = job.get('id') if isinstance(job, dict) else None
+        marker = {'schema': 2, 'state': 'running', 'job_id': job_id,
                   'pid': pid, 'created': identity.get('created'), 'exe': identity.get('exe'),
-                  'since': time.time()}
+                  'lease': str(self.root / WORKER_LEASE_NAME), 'since': time.time()}
         try:
-            atomic_json(self.root / WORKER_MARKER_NAME, marker)
-        except OSError:
-            traceback.print_exc()
+            self.write_worker_marker(marker)
+        except Exception:
+            self.log_problem('worker-identity', traceback.format_exc())
 
-    # 中文维护：读取持久化工作进程标记；损坏时按无标记处理，不阻断启动。
+    # 中文维护：依次尝试主标记、备份标记、任务目录冗余记录；全部损坏时返回 corrupt 状态。
     def read_worker_marker(self):
-        path = self.root / WORKER_MARKER_NAME
-        if not path.is_file():
-            return None
-        try:
-            marker = json.loads(path.read_text(encoding='utf-8'))
-        except (OSError, ValueError):
-            return None
-        return marker if isinstance(marker, dict) else None
+        corrupt = False
+        candidates = [('main', self.root / WORKER_MARKER_NAME),
+                      ('backup', self.root / WORKER_MARKER_BACKUP)]
+        job_root = self.root / 'jobs'
+        if job_root.is_dir():
+            try:
+                records = sorted(job_root.glob('*/' + WORKER_JOB_RECORD),
+                                 key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+            except OSError:
+                records = []
+            candidates += [('job', path) for path in records]
+        found = None
+        for source, path in candidates:
+            if not path.is_file():
+                continue
+            try:
+                data = json.loads(path.read_text(encoding='utf-8'))
+            except FileNotFoundError:
+                continue
+            except (OSError, ValueError) as exc:
+                corrupt = True
+                self.log_problem('worker-marker', '%s 记录无法读取（%s）：%s' % (source, path, exc))
+                continue
+            if not isinstance(data, dict):
+                corrupt = True
+                continue
+            if source != 'main':
+                self.log_problem('worker-marker', '主标记不可用，已使用 %s 记录：%s' % (source, path))
+            if found is None or (self.marker_identity(found) is None and self.marker_identity(data) is not None):
+                found = data
+        return found, ('corrupt' if corrupt and found is None else 'ok')
 
-    # 中文维护：删除持久化标记；文件不存在或暂被占用都不影响主流程。
+    # 中文维护：删除全部标记（含任务目录冗余记录）；文件不存在或暂被占用都不影响主流程。
     def clear_worker_marker(self):
-        try:
-            (self.root / WORKER_MARKER_NAME).unlink(missing_ok=True)
-        except OSError:
-            traceback.print_exc()
+        paths = list(self.marker_paths())
+        job_root = self.root / 'jobs'
+        if job_root.is_dir():
+            try:
+                paths += list(job_root.glob('*/' + WORKER_JOB_RECORD))
+            except OSError:
+                pass
+        for path in paths:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                traceback.print_exc()
 
-    # 中文维护：启动时接续上次工作进程：身份匹配才视为仍存活并暂停队列；否则按已退出清理标记。
-    def adopt_worker_marker(self, marker):
-        identity = {'pid': marker.get('pid'), 'created': marker.get('created'), 'exe': marker.get('exe')}
-        pid = marker.get('pid')
-        if not process_alive(identity):
-            self.clear_worker_marker()
-            self.log_problem('quarantine-cleared',
-                             '上次记录的工作进程 PID %s 已退出或已被复用（非同一进程），按已退出处理' % pid)
+    # 中文维护：启动时接续孤儿状态：确认存活则暂停；确认退出/复用则放行；无法判断则保留隔离并复查。
+    def adopt_orphan_records(self):
+        marker, marker_state = self.read_worker_marker()
+        lease, lease_detail = lease_state(self.root / WORKER_LEASE_NAME)
+        identity = self.marker_identity(marker)
+        if marker is None and marker_state != 'corrupt':
+            if lease == 'locked':
+                self.block_orphan_quarantine(None, None, '检测到运行租约仍被占用（%s），但没有找到进程记录'
+                                             % lease_detail, unknown=True)
+                return True
             return False
+        if lease == 'locked':
+            self.block_orphan_quarantine(marker, identity, '旧工作进程仍在运行（仍持有运行租约）', unknown=False)
+            return True
+        if identity:
+            state, detail = process_state(identity)
+            if state == 'alive':
+                self.block_orphan_quarantine(marker, identity, '上次任务的工作进程仍在运行', unknown=False)
+                return True
+            if state == 'dead':
+                self.clear_worker_marker()
+                self.log_problem('quarantine-cleared',
+                                 '上次记录的 PID %s 已退出或已被复用（%s），按已退出处理' % (identity['pid'], detail))
+                return False
+            # 中文维护：查询失败属于“暂时无法判断”，保留记录与隔离，等待复查，绝不据此放行。
+            self.block_orphan_quarantine(marker, identity, '暂时无法确认旧工作进程是否已退出（%s）' % detail,
+                                         unknown=True)
+            return True
+        if marker is None or marker_state == 'corrupt':
+            self.block_orphan_quarantine(None, None, '工作进程记录已损坏，无法确认是否仍有遗留进程', unknown=True)
+            return True
+        # 只有启动意图（进程可能还在启动中，也可能已退出），先暂停并观察运行租约。
+        self.block_orphan_quarantine(marker, None, '上次服务在启动工作进程时中断，正在复查是否仍有遗留进程',
+                                     unknown=True, grace=True)
+        return True
+
+    # 中文维护：进入启动隔离并说明原因与恢复方式；unknown 状态持续复查，不会自动当作已退出。
+    def block_orphan_quarantine(self, marker, identity, reason, unknown=False, grace=False):
+        marker = marker if isinstance(marker, dict) else {}
         job_id = marker.get('job_id')
+        pid = identity.get('pid') if identity else marker.get('pid')
         prior = marker.get('prior_message') or ''
-        warning = ('上次任务的工作进程仍在运行（PID %s），为避免与它争用显卡，队列已暂停，不会启动新任务；'
-                   '请等待它结束或手动结束后重启软件。' % pid)
+        if unknown:
+            warning = ('队列已暂停，不会启动新任务：%s。软件会继续复查，请不要重复提交任务；'
+                       '若确认已没有遗留的 Python 进程，请先关闭软件，再删除 data 目录下的 '
+                       'worker-current.json、worker-current.json.bak 以及对应任务目录中的 worker.json，然后重新打开软件。'
+                       % reason)
+        else:
+            warning = ('旧工作进程仍在运行（PID %s），为避免与它争用显卡，队列已暂停，不会启动新任务；'
+                       '请等待它结束，或手动结束该进程后重新打开软件。' % pid)
         self.blocked = {'job_id': job_id, 'pid': pid, 'proc': None, 'identity': identity,
-                        'since': time.time(), 'reason': '启动时检测到上次工作进程仍在运行', 'prior_message': prior}
-        self.log_problem('quarantine-restored', warning)
+                        'marker': marker, 'unknown': unknown,
+                        'grace': (time.time() + self.STARTUP_GRACE) if grace else None,
+                        'since': time.time(), 'reason': reason, 'prior_message': prior,
+                        'detail': '', 'last_log': 0.0}
+        self.log_problem('quarantine-unknown' if unknown else 'quarantine-restored', warning)
         if job_id:
             try:
                 latest = self.get('jobs', job_id)
@@ -556,11 +751,6 @@ class Studio:
                 self.save('jobs', latest)
             except ValueError:
                 pass
-            marker['prior_message'] = prior
-            try:
-                atomic_json(self.root / WORKER_MARKER_NAME, marker)
-            except OSError:
-                traceback.print_exc()
         self.blocked['prior_message'] = prior
         return True
 
@@ -774,44 +964,79 @@ class Studio:
         # 先落库失败原因，再对外暴露隔离标记，避免观察者看到“已隔离但状态仍取消中”。
         if job_id:
             self.save_job_state(job_id, state='failed', message=message, orphan_pid=pid, quarantine=True)
-        # 中文维护：持久化进程身份；即使主服务重启，也能识别旧进程是否仍是同一个。
+        # 中文维护：持久化身份（含冗余副本）；即使主服务重启，也能识别旧进程是否仍是同一个。
         identity = process_identity(pid) or {'pid': pid, 'created': None, 'exe': ''}
-        marker = {'job_id': job_id, 'pid': pid, 'created': identity.get('created'),
-                  'exe': identity.get('exe'), 'since': time.time(), 'reason': str(reason),
-                  'prior_message': prior}
+        marker = {'schema': 2, 'state': 'running', 'job_id': job_id, 'pid': pid,
+                  'created': identity.get('created'), 'exe': identity.get('exe'),
+                  'lease': str(self.root / WORKER_LEASE_NAME), 'since': time.time(),
+                  'reason': str(reason), 'prior_message': prior}
         try:
-            atomic_json(self.root / WORKER_MARKER_NAME, marker)
-        except OSError:
-            traceback.print_exc()
+            self.write_worker_marker(marker)
+        except Exception:
+            self.log_problem('worker-marker', traceback.format_exc())
         self.blocked = {'job_id': job_id, 'pid': pid, 'proc': proc, 'identity': identity,
-                        'since': time.time(), 'reason': str(reason), 'prior_message': prior}
+                        'marker': marker, 'unknown': False, 'grace': None,
+                        'since': time.time(), 'reason': str(reason), 'prior_message': prior,
+                        'detail': '', 'last_log': 0.0}
         self.log_problem('worker-quarantine', message)
 
-    # 中文维护：隔离期间只观察原有进程；确认退出（含跨重启的身份核对）后解封并让队列继续消费。
+    # 中文维护：隔离期间复查：确认退出才解封；无法判断时保留隔离并定期复查。
     def release_quarantine_when_exited(self):
         info = self.blocked or {}
         proc = info.get('proc')
         if proc is not None:
-            exited = proc.poll() is not None
+            if proc.poll() is not None:
+                return self.finish_quarantine(info, 'PID %s 已确认退出，队列恢复' % info.get('pid'))
+            self.stopping.wait(self.QUARANTINE_POLL)
+            return False
+        lease, lease_detail = lease_state(self.root / WORKER_LEASE_NAME)
+        identity = info.get('identity')
+        now = time.time()
+        if lease == 'locked':
+            info['grace'] = None
+            self._note_quarantine_check(info, '运行租约仍被占用（%s），队列保持暂停' % lease_detail)
+            self.stopping.wait(self.QUARANTINE_POLL)
+            return False
+        if identity:
+            state, detail = process_state(identity)
+            if state == 'alive':
+                self._note_quarantine_check(info, '进程仍存活，队列保持暂停')
+            elif state == 'dead':
+                return self.finish_quarantine(info, 'PID %s 已确认退出（%s），队列恢复' % (identity['pid'], detail))
+            else:
+                # 中文维护：查询失败不等于退出；保留隔离与记录，等待下一次复查。
+                self._note_quarantine_check(info, '暂时无法确认旧进程是否退出（%s），继续隔离并复查' % detail)
         else:
-            # 中文维护：重启后没有进程句柄，只能按持久化身份核对，PID 复用不会被误判为存活。
-            exited = not process_alive(info.get('identity') or {})
-        if exited:
-            self.blocked = None
-            self.queue_backoff = 0.0
-            self.clear_worker_marker()
-            self.log_problem('quarantine-cleared', 'PID %s 已确认退出，队列恢复' % info.get('pid'))
-            if info.get('job_id'):
-                prior = info.get('prior_message') or ''
-                message = '旧工作进程已退出，队列已恢复。'
-                if prior:
-                    message += prior
-                else:
-                    message += '中断任务需确认后重试。'
-                self.save_job_state(info['job_id'], message=message)
-            return True
+            grace = info.get('grace')
+            if grace is None:
+                info['grace'] = now + self.STARTUP_GRACE
+                self._note_quarantine_check(info, '没有可核对的 PID，等待启动窗口结束后再确认')
+            elif now >= grace:
+                return self.finish_quarantine(info, '启动记录窗口已过且运行租约空闲，按已退出处理')
         self.stopping.wait(self.QUARANTINE_POLL)
         return False
+
+    # 中文维护：限制隔离复查日志频率；状态变化时立即记录，避免每秒刷屏。
+    def _note_quarantine_check(self, info, detail):
+        now = time.time()
+        if detail != info.get('detail') or now - info.get('last_log', 0) >= self.UNKNOWN_LOG_INTERVAL:
+            info['detail'] = detail
+            info['last_log'] = now
+            self.log_problem('quarantine-check', detail)
+
+    # 中文维护：确认退出后清除持久化记录、恢复队列；中断任务仍需用户显式重试。
+    def finish_quarantine(self, info=None, detail='工作进程已确认退出'):
+        info = info or {}
+        self.blocked = None
+        self.queue_backoff = 0.0
+        self.clear_worker_marker()
+        self.log_problem('quarantine-cleared', detail)
+        if info.get('job_id'):
+            prior = info.get('prior_message') or ''
+            message = '旧工作进程已退出，队列已恢复。'
+            message += prior if prior else '中断任务需确认后重试。'
+            self.save_job_state(info['job_id'], message=message)
+        return True
 
     # 中文维护：任务状态写回失败时有限重试，并登记待补偿，避免任务永久停留在 running。
     def save_job_state(self, job_id, **updates):
@@ -860,7 +1085,8 @@ class Studio:
     def run_job(self, j):
         folder = self.root / 'jobs' / j['id']
         folder.mkdir(parents=True, exist_ok=True)
-        request = dict(j['request'], job_dir=str(folder), lock_path=str(self.root / 'gpu.lock'), parent_pid=os.getpid())
+        request = dict(j['request'], job_dir=str(folder), lock_path=str(self.root / 'gpu.lock'),
+                       lease_path=str(self.root / WORKER_LEASE_NAME), parent_pid=os.getpid())
         atomic_json(folder / 'request.json', request)
         proc = None
         try:
@@ -868,6 +1094,8 @@ class Studio:
             preparation_job = j.get('kind') == 'preparation'
             if training_job or preparation_job or request['segments']:
                 runtime = require_file(request['settings']['runtime'])
+                # 中文维护：先落“即将启动”记录，成功后才允许创建进程；写盘失败则拒绝启动。
+                self.begin_worker_start(j)
                 with (folder / 'worker.log').open('w', encoding='utf-8') as log:
                     env = dict(os.environ, PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1',
                                HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
