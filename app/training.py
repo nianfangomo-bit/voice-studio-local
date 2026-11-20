@@ -115,6 +115,8 @@ def plan(studio, did):
 # 中文维护：核实授权确认、修订号和计划就绪后保存训练快照并排队。
 def enqueue(studio, did, data):
     with studio.lock:
+        if studio.blocked:
+            raise ValueError(studio.pause_message())
         report = plan(studio, did)
         if data.get('confirmed') is not True:
             raise ValueError('请确认训练会占用显卡和磁盘，再启动。')

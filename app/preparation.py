@@ -55,6 +55,8 @@ def register_upload(studio, did, target, name):
 # 中文维护：检查离线转写组件与原始录音后创建 CPU 整理任务，不自动下载模型。
 def enqueue(studio, did):
     with studio.lock:
+        if studio.blocked:
+            raise ValueError(studio.pause_message())
         ds = studio.get('datasets', did)
         if studio.busy(did):
             raise ValueError('此素材已有任务。请等待或取消后再试。')

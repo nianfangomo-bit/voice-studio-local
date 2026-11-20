@@ -154,6 +154,17 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         source = LATE_IDENTITY_HOLDER.replace('@APP@', str(APP_DIR)).replace('@DELAY@', repr(float(delay)))
         return self._spawn(source, [str(self.data / 'jobs' / job_id)])
 
+    # 中文维护：直接写入可用于正常入队的最小项目与声线快照（不调用真实引擎）。
+    def make_project(self, s, project_id='p1'):
+        s.save('projects', {'id': project_id, 'name': '测试项目', 'original': '你好。',
+                            'voice': {'id': 'v1', 'name': '测试声线', 'gpt_hash': 'g', 'sovits_hash': 's',
+                                      'reference_hash': 'r', 'prompt_text': '你好。', 'engine_hash': 'e'},
+                            'segments': [{'id': 's1', 'original': '你好。', 'spoken': '你好。', 'display': '你好。',
+                                          'audio': None, 'history': []}],
+                            'speed': 1.0, 'gap_ms': 180, 'paragraph_gap_ms': 420, 'exports': [],
+                            'created': 1, 'dirty': True})
+        return project_id
+
     # 中文维护：用记录器代替真实训练/推理；只记录队列实际启动了哪些任务。
     def recorder(self, s, started):
         def fake_run(job):
@@ -449,7 +460,110 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         self.assertIn('仍在运行', message)
         self.assertIn('重新打开软件', message)
         self.assertIn('上次运行中断', message)
+        # 11. 启动检查没有记录、锁又读不到：必须暂停；没有旧任务记录时也要让用户看到原因与恢复步骤。
+    def test_startup_without_records_and_lease_unknown_pauses_queue(self):
+        first = self.open_studio()          # 干净目录：没有任何工作进程记录或旧任务
+        child = self.spawn_plain()          # 真实子进程存活，但未持锁、未写身份
+        original_lease = studio_module.lease_state
+        studio_module.lease_state = lambda path: ('unknown', '模拟锁查询失败')
+        try:
+            second = self.open_studio()
+            self.assertIsNotNone(second.blocked)
+            self.assertTrue(second.blocked.get('unknown'))
+            self.assertIn('运行租约', second.blocked['reason'])
+            started = self.assert_no_new_start(second, sleep=0.8)
+            self.assertEqual(started, [])
+            # 用户可见：没有旧任务可写消息，暂停说明被补到新排队任务上。
+            message = second.get('jobs', 'job-next')['message']
+            self.assertIn('队列已暂停', message)
+            self.assertIn('无法读取运行租约', message)
+            self.assertIn('关闭软件', message)
+            self.assertIn('worker-current.json', message)
+            self.assertIn('重新打开软件', message)
+            # 暂停期间再提交任务，同样直接收到原因与恢复步骤，而不是笼统的“已有任务”。
+            with self.assertRaises(ValueError) as raised:
+                second.enqueue('missing-project')
+            self.assertIn('队列已暂停', str(raised.exception))
+            self.assertIn('关闭软件', str(raised.exception))
+            # 界面/诊断读取的快照也带暂停状态。
+            pause = second.snapshot().get('queue_pause')
+            self.assertIsNotNone(pause)
+            self.assertIn('worker-current.json', pause['message'])
+            # 队列确实执行过锁状态的复查。
+            self.assertIn('无法读取运行租约', (self.data / 'queue-errors.log').read_text(encoding='utf-8'))
+        finally:
+            studio_module.lease_state = original_lease
+        # 锁恢复可读且空闲，但旧进程身份仍未知：不能凭“锁空闲”放行。
+        time.sleep(0.8)
+        self.assertIsNone(child.poll())
+        self.assertIsNotNone(second.blocked)
+        self.assertEqual(started, [])
+        # 旧进程退出后仍没有任何身份记录：无法证明，继续暂停并给出说明。
         stop_proc(child)
+        time.sleep(0.6)
+        self.assertIsNotNone(second.blocked)
+        self.assertEqual(started, [])
+        # 用户按提示确认没有遗留进程并重启后，队列才正常消费新任务（用户确认是恢复依据）。
+        second.stopping.set()
+        second.wake.set()
+        second.thread.join(5)
+        third = self.open_studio()
+        self.assertIsNone(third.blocked)
+        fresh = []
+        third.QUARANTINE_POLL = 0.1
+        third.run_job = self.recorder(third, fresh)
+        self.job(third, 'job-after-restart', created=3)
+        third.start()
+        self.assertTrue(wait_until(lambda: third.get('jobs', 'job-after-restart')['state'] == 'done', 10))
+        time.sleep(0.2)
+        self.assertEqual(fresh, ['job-after-restart'])
+
+    # 12. 启动检查锁 unknown + 无记录；旧进程稍后补写身份：确认退出后自动恢复且新任务只执行一次。
+    def test_startup_without_records_recovers_after_late_identity(self):
+        first = self.open_studio()
+        child = self.spawn_late_identity('job-orphan', delay=1.2)
+        original_lease = studio_module.lease_state
+        studio_module.lease_state = lambda path: ('unknown', '模拟锁查询失败')
+        try:
+            second = self.open_studio()
+        finally:
+            studio_module.lease_state = original_lease
+        self.assertIsNotNone(second.blocked)
+        started = self.assert_no_new_start(second, sleep=0.3)
+        self.assertEqual(started, [])
+        # 旧进程补写有效身份：复查读到后确认仍存活，继续暂停。
+        self.assertTrue(wait_until(lambda: second.blocked and second.blocked.get('identity')
+                                   and second.blocked['identity'].get('pid') == child.pid, 10))
+        self.assertIsNone(child.poll())
+        self.assertIsNotNone(second.blocked)
+        self.assertEqual(started, [])
+        # 取得可靠退出证据（身份核对为 dead）后才恢复，新任务恰好执行一次。
+        stop_proc(child)
+        self.assertTrue(wait_until(lambda: second.blocked is None, 15))
+        self.assertTrue(wait_until(lambda: second.get('jobs', 'job-next')['state'] == 'done', 15))
+        time.sleep(0.2)
+        self.assertEqual(started, ['job-next'])
+
+    # 13. 干净首次安装：没有记录、锁可读空闲；首个任务正常入队并恰好执行一次。
+    def test_clean_first_install_runs_first_job_once(self):
+        s = self.open_studio()
+        self.assertIsNone(s.blocked)
+        self.assertIsNone(s.snapshot().get('queue_pause'))
+        self.make_project(s)
+        job = s.enqueue('p1')
+        self.assertEqual(job['state'], 'queued')
+        self.assertNotIn('队列已暂停', job['message'])
+        started = []
+        s.QUARANTINE_POLL = 0.1
+        s.run_job = self.recorder(s, started)
+        s.start()
+        self.assertTrue(wait_until(lambda: s.get('jobs', job['id'])['state'] == 'done', 10))
+        time.sleep(0.3)
+        self.assertEqual(started, [job['id']])
+        self.assertIsNone(s.blocked)
+        self.assertIsNone(s.snapshot().get('queue_pause'))
+        self.assertFalse((self.data / WORKER_MARKER_NAME).exists())
+        self.assertFalse((self.data / WORKER_MARKER_BACKUP).exists())
 
 
 if __name__ == '__main__':

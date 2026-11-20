@@ -286,7 +286,7 @@ class QueueQuarantineTests(unittest.TestCase):
             finally:
                 self.unlock(handle)
 
-    # F. 隔离期间 busy() 为真：界面不会允许编辑或再排新任务。
+    # F. 隔离期间 busy() 为真：界面不会允许编辑或再排新任务，并且直接说明暂停原因。
     def test_f_busy_during_quarantine(self):
         with mock.patch('studio.subprocess.Popen', self.fake_popen):
             self.s.start()
@@ -294,7 +294,8 @@ class QueueQuarantineTests(unittest.TestCase):
             self.assertTrue(self.s.busy())
             with self.assertRaises(ValueError) as ctx:
                 self.s.enqueue('p', 'all', None)
-            self.assertIn('运行中的任务', str(ctx.exception))
+            self.assertIn('队列已暂停', str(ctx.exception))
+            self.assertIn('重新打开软件', str(ctx.exception))
 
 
 if __name__ == '__main__':

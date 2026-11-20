@@ -448,6 +448,9 @@ class Studio:
         if mode not in ('all', 'preview', 'segment'):
             raise ValueError('未知任务类型')
         with self.lock:
+            if self.blocked:
+                # 中文维护：暂停时优先说明原因与恢复步骤，不用笼统的“已有任务”掩盖真实状态。
+                raise ValueError(self.pause_message())
             if self.busy(project_id):
                 raise ValueError('项目已有等待或运行中的任务。')
             p = self.get('projects', project_id)
@@ -698,6 +701,11 @@ class Studio:
                 self.block_orphan_quarantine(None, None, '检测到运行租约仍被占用（%s），但没有找到进程记录'
                                              % lease_detail, unknown=True)
                 return True
+            if lease == 'unknown':
+                # 中文维护：没有记录且锁读不到时同样无法排除遗留进程；与已暂停队列保持一致，先暂停并复查。
+                self.block_orphan_quarantine(None, None, '没有找到工作进程记录，且暂时无法读取运行租约（%s）'
+                                             % lease_detail, unknown=True)
+                return True
             return False
         if lease == 'locked':
             self.block_orphan_quarantine(marker, identity, '旧工作进程仍在运行（仍持有运行租约）', unknown=False)
@@ -742,7 +750,7 @@ class Studio:
                         'marker': marker, 'unknown': unknown,
                         'grace': (time.time() + self.STARTUP_GRACE) if grace else None,
                         'since': time.time(), 'reason': reason, 'prior_message': prior,
-                        'detail': '', 'last_log': 0.0}
+                        'warning': warning, 'detail': '', 'last_log': 0.0}
         self.log_problem('quarantine-unknown' if unknown else 'quarantine-restored', warning)
         if job_id:
             try:
@@ -753,8 +761,34 @@ class Studio:
                 self.save('jobs', latest)
             except ValueError:
                 pass
+        else:
+            # 中文维护：没有旧任务可写消息时，把原因与恢复步骤补到队列中的任务上，界面才能直接展示。
+            self.annotate_paused_jobs(warning)
         self.blocked['prior_message'] = prior
         return True
+
+    # 中文维护：把暂停原因与恢复步骤追加到尚未开始的排队任务，重复调用不会重复追加。
+    def annotate_paused_jobs(self, warning=None):
+        warning = warning or (self.blocked or {}).get('warning')
+        if not warning:
+            return
+        for job in self.all('jobs'):
+            if not isinstance(job, dict) or job.get('state') != 'queued':
+                continue
+            prior = job.get('message') or ''
+            if warning in prior:
+                continue
+            separator = '' if prior.endswith(('。', '；', ';', '！', '!')) else '；'
+            job['message'] = prior + separator + warning
+            job['queue_paused'] = True
+            self.save('jobs', job)
+
+    # 中文维护：队列暂停期间给用户看的完整说明（原因 + 可执行的恢复步骤）。
+    def pause_message(self):
+        info = self.blocked or {}
+        return info.get('warning') or ('队列已暂停，不会启动新任务：%s。'
+                                       '请确认没有遗留的 Python 进程并重新打开软件。'
+                                       % (info.get('reason') or '旧工作进程状态尚未确认'))
 
     # 中文维护：合并工作进程实际进度；保存片段历史或素材修订，支持异常后恢复。返回恢复摘要。
     def ingest(self, j, folder):
@@ -888,6 +922,8 @@ class Studio:
         while not self.stopping.is_set():
             if self.blocked:
                 # 中文维护：旧工作进程未确认退出前，绝不启动下一个任务，也不再消费队列。
+                # 暂停期间新排入的任务也要带上可见的暂停原因与恢复步骤（没有旧任务记录时尤其重要）。
+                self.annotate_paused_jobs()
                 self.release_quarantine_when_exited()
                 self.retry_pending_state()
                 continue
@@ -1275,4 +1311,15 @@ class Studio:
                 s['current'] = self.current(p, s)
         jobs = [{k: v for k, v in j.items() if k != 'request'} for j in self.all('jobs')]
         return {'settings': self.settings(), 'voices': self.all('voices'), 'projects': projects, 'jobs': jobs,
-                'datasets': self.all('datasets'), 'environment_history': self.all('environment_history')[:10]}
+                'datasets': self.all('datasets'), 'environment_history': self.all('environment_history')[:10],
+                'queue_pause': self.pause_status()}
+
+    # 中文维护：向界面和诊断摘要说明队列为何暂停，以及用户可执行的恢复方式。
+    def pause_status(self):
+        info = self.blocked
+        if not info:
+            return None
+        return {'reason': info.get('reason') or '旧工作进程状态尚未确认',
+                'message': self.pause_message(),
+                'since': info.get('since'), 'unknown': bool(info.get('unknown')),
+                'job_id': info.get('job_id')}
