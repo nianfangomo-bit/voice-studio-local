@@ -692,7 +692,24 @@ class Studio:
                 traceback.print_exc()
 
     # 中文维护：启动时接续孤儿状态：确认存活则暂停；确认退出/复用则放行；无法判断则保留隔离并复查。
+    # 临时读写故障不得让服务启动失败：记录日志并保留隔离，交给消费线程稍后复查。
     def adopt_orphan_records(self):
+        try:
+            return self._adopt_orphan_records()
+        except Exception:
+            traceback.print_exc()
+            self.log_problem('worker-adopt', '启动检查遇到临时故障，保留隔离并稍后复查\n' + traceback.format_exc())
+            try:
+                self.block_orphan_quarantine(None, None, '启动检查遇到临时故障，暂时无法确认是否仍有遗留进程',
+                                             unknown=True)
+            except Exception:
+                traceback.print_exc()
+                self.log_problem('worker-adopt', '暂停说明写入失败\n' + traceback.format_exc())
+                self._block_in_memory('启动检查遇到临时故障，暂时无法确认是否仍有遗留进程')
+            return True
+
+    # 中文维护：启动检查的实际判定；异常由 adopt_orphan_records 统一兜底，避免启动失败或误放行。
+    def _adopt_orphan_records(self):
         marker, marker_state = self.read_worker_marker()
         lease, lease_detail = lease_state(self.root / WORKER_LEASE_NAME)
         identity = self.marker_identity(marker)
@@ -761,18 +778,36 @@ class Studio:
                 self.save('jobs', latest)
             except ValueError:
                 pass
+            except Exception:
+                # 中文维护：写旧任务消息失败不影响内存中的隔离状态；消费线程稍后会重试标注。
+                traceback.print_exc()
+                self.log_problem('quarantine-annotate', traceback.format_exc())
         else:
             # 中文维护：没有旧任务可写消息时，把原因与恢复步骤补到队列中的任务上，界面才能直接展示。
-            self.annotate_paused_jobs(warning)
+            try:
+                self.annotate_paused_jobs(warning)
+            except Exception:
+                # 中文维护：启动时说明写入失败不能阻止服务启动；隔离已生效，稍后由消费线程重试。
+                traceback.print_exc()
+                self.log_problem('quarantine-annotate', traceback.format_exc())
         self.blocked['prior_message'] = prior
         return True
+
+    # 中文维护：启动检查异常且连说明都写不进数据库时的最小隔离状态；只放内存，仍不解封。
+    def _block_in_memory(self, reason):
+        warning = ('队列已暂停，不会启动新任务：%s。软件会继续复查；若确认已没有遗留的 Python 进程，'
+                   '请先关闭软件并重新打开。' % reason)
+        self.blocked = {'job_id': None, 'pid': None, 'proc': None, 'identity': None, 'marker': {},
+                        'unknown': True, 'grace': None, 'since': time.time(), 'reason': reason,
+                        'prior_message': '', 'warning': warning, 'detail': '', 'last_log': 0.0}
 
     # 中文维护：把暂停原因与恢复步骤追加到尚未开始的排队任务，重复调用不会重复追加。
     def annotate_paused_jobs(self, warning=None):
         warning = warning or (self.blocked or {}).get('warning')
         if not warning:
             return
-        for job in self.all('jobs'):
+        jobs = self.all('jobs')  # 读失败交给调用方退避重试，绝不因此解封队列。
+        for job in jobs:
             if not isinstance(job, dict) or job.get('state') != 'queued':
                 continue
             prior = job.get('message') or ''
@@ -781,7 +816,13 @@ class Studio:
             separator = '' if prior.endswith(('。', '；', ';', '！', '!')) else '；'
             job['message'] = prior + separator + warning
             job['queue_paused'] = True
-            self.save('jobs', job)
+            try:
+                self.save('jobs', job)
+            except Exception:
+                # 中文维护：单条任务写入失败只记录并留到下一轮复查，不影响消费线程。
+                traceback.print_exc()
+                self.log_problem('quarantine-annotate', traceback.format_exc())
+                return
 
     # 中文维护：队列暂停期间给用户看的完整说明（原因 + 可执行的恢复步骤）。
     def pause_message(self):
@@ -923,8 +964,18 @@ class Studio:
             if self.blocked:
                 # 中文维护：旧工作进程未确认退出前，绝不启动下一个任务，也不再消费队列。
                 # 暂停期间新排入的任务也要带上可见的暂停原因与恢复步骤（没有旧任务记录时尤其重要）。
-                self.annotate_paused_jobs()
-                self.release_quarantine_when_exited()
+                try:
+                    self.annotate_paused_jobs()
+                except Exception:
+                    # 中文维护：临时读写故障只记录并退避，绝不能让唯一消费线程退出或提前解封。
+                    self.pause_loop_error('quarantine-annotate', '暂停说明读取/写入失败，保留隔离并稍后重试')
+                    continue
+                try:
+                    self.release_quarantine_when_exited()
+                except Exception:
+                    self.pause_loop_error('quarantine-error', '暂停复查遇到临时故障，保留隔离并稍后重试')
+                    continue
+                self.queue_backoff = 0.0
                 self.retry_pending_state()
                 continue
             job = None
@@ -961,6 +1012,13 @@ class Studio:
                 self.stopping.wait(self.queue_backoff)
             finally:
                 self.retry_pending_state()
+
+    # 中文维护：隔离期间遇到临时读写故障：只记录并按队列退避策略等待，绝不解封，也不终止消费线程。
+    def pause_loop_error(self, kind, detail):
+        traceback.print_exc()
+        self.log_problem(kind, detail + '\n' + traceback.format_exc())
+        self.queue_backoff = min(max(self.QUEUE_MIN_BACKOFF, self.queue_backoff * 2), self.QUEUE_MAX_BACKOFF)
+        self.stopping.wait(self.queue_backoff)
 
     # 中文维护：确认进程确实退出才返回 True；停止动作失败或超时都不算退出。
     def confirm_process_exit(self, proc, timeout=None, stop=None):

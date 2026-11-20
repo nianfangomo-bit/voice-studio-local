@@ -9,6 +9,7 @@
 """
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -564,6 +565,106 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         self.assertIsNone(s.snapshot().get('queue_pause'))
         self.assertFalse((self.data / WORKER_MARKER_NAME).exists())
         self.assertFalse((self.data / WORKER_MARKER_BACKUP).exists())
+
+
+# 14. 暂停期间一次 SQLite 读/写故障：消费线程必须存活，记录日志并退避，不能提前解封。
+    def test_pause_transient_sqlite_error_keeps_consumer_alive(self):
+        first = self.open_studio()
+        child = self.spawn_late_identity('job-orphan', delay=1.2)
+        original_lease = studio_module.lease_state
+        studio_module.lease_state = lambda path: ('unknown', '模拟锁查询失败')
+        try:
+            second = self.open_studio()
+        finally:
+            studio_module.lease_state = original_lease
+        self.assertIsNotNone(second.blocked)
+        # 第一次标注排队任务时读 SQLite 失败；第一次复查时读身份记录失败。
+        original_all = second.all
+        annotate_failed = {'done': False}
+
+        def flaky_all(kind):
+            if kind == 'jobs' and not annotate_failed['done']:
+                annotate_failed['done'] = True
+                raise sqlite3.OperationalError('database is locked (模拟暂停标注读失败)')
+            return original_all(kind)
+
+        original_read = second.read_worker_marker
+        review_failed = {'done': False}
+
+        def flaky_read(quiet=False):
+            if not review_failed['done']:
+                review_failed['done'] = True
+                raise sqlite3.OperationalError('database is locked (模拟暂停复查读失败)')
+            return original_read(quiet=quiet)
+
+        second.all = flaky_all
+        second.read_worker_marker = flaky_read
+        started = []
+        self.job(second, 'job-next', created=2)
+        second.QUARANTINE_POLL = 0.1
+        second.run_job = self.recorder(second, started)
+        second.start()
+        time.sleep(1.0)
+        self.assertTrue(second.thread.is_alive(), '单次 SQLite 故障不得杀死唯一消费线程')
+        self.assertIsNotNone(second.blocked, '临时故障不得提前解封')
+        self.assertEqual(started, [])
+        log = (self.data / 'queue-errors.log').read_text(encoding='utf-8')
+        self.assertIn('quarantine-annotate', log)
+        self.assertIn('quarantine-error', log)
+        self.assertIn('模拟暂停标注读失败', log)
+        self.assertIn('模拟暂停复查读失败', log)
+        # 故障各只记录一次，下一轮复查继续；旧进程仍存活时零启动。
+        self.assertEqual(log.count('quarantine-annotate'), 1)
+        self.assertEqual(log.count('quarantine-error'), 1)
+        # 旧进程补写身份后确认退出，下一任务恰好执行一次。
+        self.assertTrue(wait_until(lambda: second.blocked and second.blocked.get('identity'), 10))
+        self.assertIsNone(child.poll())
+        self.assertEqual(started, [])
+        stop_proc(child)
+        self.assertTrue(wait_until(lambda: second.blocked is None, 15))
+        self.assertTrue(wait_until(lambda: second.get('jobs', 'job-next')['state'] == 'done', 15))
+        time.sleep(0.2)
+        self.assertEqual(started, ['job-next'])
+        self.assertTrue(second.thread.is_alive())
+        self.assertFalse((self.data / WORKER_MARKER_NAME).exists())
+
+    # 15. 启动入口写暂停说明时一次 SQLite 读失败：服务仍要启动、保持暂停并留日志。
+    def test_startup_transient_sqlite_error_still_pauses(self):
+        first = self.open_studio()
+        child = self.spawn_late_identity('job-orphan', delay=1.2)
+        original_lease = studio_module.lease_state
+        original_all = Studio.all
+        calls = {'n': 0}
+
+        def flaky_all(studio, kind):
+            if kind == 'jobs':
+                calls['n'] += 1
+                if calls['n'] == 2:  # 第 1 次是构造函数的恢复扫描，第 2 次是启动隔离写说明
+                    raise sqlite3.OperationalError('database is locked (模拟启动读失败)')
+            return original_all(studio, kind)
+
+        studio_module.lease_state = lambda path: ('unknown', '模拟锁查询失败')
+        try:
+            with mock.patch.object(Studio, 'all', flaky_all):
+                second = self.open_studio()  # 修复前这里会抛异常，服务无法启动
+        finally:
+            studio_module.lease_state = original_lease
+        self.assertIsNotNone(second.blocked)
+        self.assertTrue(second.blocked.get('unknown'))
+        self.assertIn('quarantine-annotate', (self.data / 'queue-errors.log').read_text(encoding='utf-8'))
+        started = self.assert_no_new_start(second, sleep=0.8)
+        self.assertEqual(started, [])
+        self.assertTrue(second.thread.is_alive())
+        self.assertIn('队列已暂停', second.get('jobs', 'job-next')['message'])
+        # 旧进程补写身份并退出后恢复，下一任务只执行一次。
+        self.assertTrue(wait_until(lambda: second.blocked and second.blocked.get('identity'), 10))
+        self.assertIsNone(child.poll())
+        stop_proc(child)
+        self.assertTrue(wait_until(lambda: second.blocked is None, 15))
+        self.assertTrue(wait_until(lambda: second.get('jobs', 'job-next')['state'] == 'done', 15))
+        time.sleep(0.2)
+        self.assertEqual(started, ['job-next'])
+        self.assertTrue(second.thread.is_alive())
 
 
 if __name__ == '__main__':
