@@ -43,6 +43,21 @@ hold(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else None)
 print('worker-ready', flush=True)
 time.sleep(180)
 """ % str(APP_DIR)
+# 中文维护：延迟补写身份记录的“慢启动”进程：先活过等待期，之后才写出可用身份。
+LATE_IDENTITY_HOLDER = """
+import json, os, sys, time
+from pathlib import Path
+sys.path.insert(0, r'@APP@')
+from studio import atomic_json, process_identity
+print('worker-ready', flush=True)
+time.sleep(@DELAY@)
+job = Path(sys.argv[1])
+identity = process_identity(os.getpid()) or {}
+atomic_json(job / 'worker.json', {'schema': 2, 'state': 'running', 'job_id': job.name,
+    'pid': os.getpid(), 'created': identity.get('created'), 'exe': identity.get('exe') or '',
+    'since': time.time()})
+time.sleep(180)
+"""
 
 
 # 中文维护：轮询等待条件成立。
@@ -133,6 +148,11 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         if job_id:
             args.append(str(self.data / 'jobs' / job_id))
         return self._spawn(LEASE_HOLDER, args)
+
+    # 中文维护：先经历一段“有进程、无身份、无租约”的窗口，之后才补写身份记录。
+    def spawn_late_identity(self, job_id, delay=1.5):
+        source = LATE_IDENTITY_HOLDER.replace('@APP@', str(APP_DIR)).replace('@DELAY@', repr(float(delay)))
+        return self._spawn(source, [str(self.data / 'jobs' / job_id)])
 
     # 中文维护：用记录器代替真实训练/推理；只记录队列实际启动了哪些任务。
     def recorder(self, s, started):
@@ -228,29 +248,77 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         stop_proc(child)
         self.assert_recovers(second, started)
 
-    # 4. 只有启动意图、没有身份也没有租约：保持暂停并复查，进程退出后自动恢复。
-    def test_starting_record_without_identity_stays_paused_until_safe(self):
+    # 4. 等待期到期只触发复查：旧进程未持锁、未写身份时活过整个等待期也不得放行。
+    def test_grace_expiry_only_rechecks_and_never_releases(self):
         first = self.open_studio()
         job = self.job(first, 'job-old', state='running')
         first.begin_worker_start(job)
-        child = self.spawn_plain()  # 不持租约、不写身份
+        child = self.spawn_late_identity('job-old', delay=1.5)
         original_grace = Studio.STARTUP_GRACE
-        Studio.STARTUP_GRACE = 0.4
+        Studio.STARTUP_GRACE = 0.3
         try:
             second = self.open_studio()
             self.assertIsNotNone(second.blocked)
-            self.assertTrue(second.blocked.get('unknown'))
-            started = self.assert_no_new_start(second, sleep=0.2)
+            self.assertIsNone(second.blocked.get('identity'))
+            started = self.assert_no_new_start(second, sleep=0.05)
+            # 等待期（0.3 秒）已过并经过多次复查：旧进程仍存活、仍未持锁，新任务实际启动次数必须为 0。
+            time.sleep(0.6)
+            self.assertIsNone(child.poll())
             self.assertEqual(started, [])
+            self.assertIsNotNone(second.blocked)
+            self.assertTrue((self.data / WORKER_MARKER_NAME).is_file())
+            self.assertTrue((self.data / WORKER_MARKER_BACKUP).is_file())
+            # 队列确实执行过“等待期到期后”的复查，但仍保持隔离。
+            self.assertTrue(wait_until(lambda: second.blocked and second.blocked.get('grace_noted'), 5))
+            log = (self.data / 'queue-errors.log').read_text(encoding='utf-8')
+            self.assertIn('不会仅凭等待期放行', log)
+            # 旧进程稍后补写有效身份：复查读到它，仍然不启动新任务。
+            self.assertTrue(wait_until(
+                lambda: second.blocked and second.blocked.get('identity') and second.blocked['identity'].get('pid') == child.pid, 10))
+            self.assertIsNone(child.poll())
+            self.assertEqual(started, [])
+            # 取得可靠退出证据（身份确认死亡）后才恢复：新任务恰好执行一次。
             stop_proc(child)
-            self.assertTrue(wait_until(lambda: second.blocked is None, 10))
-            self.assertTrue(wait_until(lambda: second.get('jobs', 'job-next')['state'] == 'done', 10))
-            self.assertEqual(started, ['job-next'])
-            self.assertEqual(second.get('jobs', 'job-old')['state'], 'interrupted')
+            self.assert_recovers(second, started)
         finally:
             Studio.STARTUP_GRACE = original_grace
 
-    # 5. 进程启动后写身份失败：意图记录 + 任务目录记录仍可恢复，队列不会放行。
+    # 5. 文件锁查询持续 unknown：不能当作“锁空闲”放行，必须保留记录与隔离。
+    def test_lease_query_unknown_keeps_quarantine(self):
+        first = self.open_studio()
+        job = self.job(first, 'job-old', state='running')
+        first.begin_worker_start(job)
+        child = self.spawn_late_identity('job-old', delay=1.5)
+        original_lease = studio_module.lease_state
+        original_grace = Studio.STARTUP_GRACE
+        Studio.STARTUP_GRACE = 0.3
+        studio_module.lease_state = lambda path: ('unknown', '模拟租约查询失败')
+        try:
+            second = self.open_studio()
+            self.assertIsNotNone(second.blocked)
+            started = self.assert_no_new_start(second, sleep=0.05)
+            # 等待期已过、锁查询持续失败：仍不得放行（旧实现会在这里启动新任务）。
+            time.sleep(0.6)
+            self.assertIsNone(child.poll())
+            self.assertEqual(started, [])
+            self.assertIsNotNone(second.blocked)
+            self.assertTrue((self.data / WORKER_MARKER_NAME).is_file())
+            self.assertTrue(wait_until(lambda: second.blocked and second.blocked.get('grace_noted'), 5))
+            self.assertIn('无法读取运行租约', (self.data / 'queue-errors.log').read_text(encoding='utf-8'))
+        finally:
+            studio_module.lease_state = original_lease
+        # 锁恢复可读但身份仍未补写：继续隔离，不启动新任务。
+        time.sleep(0.3)
+        self.assertIsNotNone(second.blocked)
+        self.assertEqual(started, [])
+        # 旧进程补写身份后退出：取得可靠退出证据才恢复。
+        self.assertTrue(wait_until(
+            lambda: second.blocked and second.blocked.get('identity'), 10))
+        stop_proc(child)
+        self.assert_recovers(second, started)
+        Studio.STARTUP_GRACE = original_grace
+
+    # 7. 进程启动后写身份失败：意图记录 + 任务目录记录仍可恢复，队列不会放行。
     def test_identity_write_failure_after_spawn_is_recoverable(self):
         first = self.open_studio()
         job = self.job(first, 'job-old', state='running')
@@ -356,18 +424,17 @@ class WorkerIdentityRecoveryTests(unittest.TestCase):
         self.assertEqual(fresh, ['job-next2'])
         self.assertEqual(third.get('jobs', 'job-old')['state'], 'interrupted')
 
-    # 9. 没有任何记录、但运行租约被占用：仍要暂停，等租约释放后再恢复。
+    # 10. 没有主标记、但运行租约被占用：暂停队列；租约释放且任务记录确认退出后恢复。
     def test_lease_held_without_marker_pauses_queue(self):
-        child = self.spawn_lease()
+        first = self.open_studio()
+        self.job(first, 'job-old', state='running')
+        child = self.spawn_lease('job-old')  # 工作进程自写身份记录并持租约
         second = self.open_studio()
         self.assertIsNotNone(second.blocked)
         self.assertIn('租约', second.blocked['reason'])
-        second.STARTUP_GRACE = 0.3
         started = self.assert_no_new_start(second)
         stop_proc(child)
-        self.assertTrue(wait_until(lambda: second.blocked is None, 10))
-        self.assertTrue(wait_until(lambda: second.get('jobs', 'job-next')['state'] == 'done', 10))
-        self.assertEqual(started, ['job-next'])
+        self.assert_recovers(second, started)
         self.assertTrue((self.data / WORKER_LEASE_NAME).is_file())
 
     # 10. 暂停提示必须说明原因与恢复方式（界面直接展示 job.message）。

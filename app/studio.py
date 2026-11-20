@@ -206,7 +206,7 @@ class Studio:
     QUARANTINE_POLL = 1.0
     QUEUE_MIN_BACKOFF = 0.2
     QUEUE_MAX_BACKOFF = 5.0
-    # 中文维护：启动意图记录没有 PID 时，等待租约是否被占用的观察窗口（秒）。
+    # 中文维护：启动意图记录没有 PID 时，等待多久后再提示“仍在复查”；等待期只触发复查，不作为放行依据。
     STARTUP_GRACE = 5.0
     # 中文维护：unknown 状态复查日志的节流间隔（秒），避免每秒刷屏。
     UNKNOWN_LOG_INTERVAL = 30.0
@@ -638,7 +638,8 @@ class Studio:
             self.log_problem('worker-identity', traceback.format_exc())
 
     # 中文维护：依次尝试主标记、备份标记、任务目录冗余记录；全部损坏时返回 corrupt 状态。
-    def read_worker_marker(self):
+    # quiet=True 供隔离复查循环使用，避免每次复查重复写日志。
+    def read_worker_marker(self, quiet=False):
         corrupt = False
         candidates = [('main', self.root / WORKER_MARKER_NAME),
                       ('backup', self.root / WORKER_MARKER_BACKUP)]
@@ -660,12 +661,13 @@ class Studio:
                 continue
             except (OSError, ValueError) as exc:
                 corrupt = True
-                self.log_problem('worker-marker', '%s 记录无法读取（%s）：%s' % (source, path, exc))
+                if not quiet:
+                    self.log_problem('worker-marker', '%s 记录无法读取（%s）：%s' % (source, path, exc))
                 continue
             if not isinstance(data, dict):
                 corrupt = True
                 continue
-            if source != 'main':
+            if source != 'main' and not quiet:
                 self.log_problem('worker-marker', '主标记不可用，已使用 %s 记录：%s' % (source, path))
             if found is None or (self.marker_identity(found) is None and self.marker_identity(data) is not None):
                 found = data
@@ -980,7 +982,7 @@ class Studio:
                         'detail': '', 'last_log': 0.0}
         self.log_problem('worker-quarantine', message)
 
-    # 中文维护：隔离期间复查：确认退出才解封；无法判断时保留隔离并定期复查。
+    # 中文维护：隔离期间复查：只有可靠退出证据才放行；等待期到期、锁读不到、记录损坏都不算证据。
     def release_quarantine_when_exited(self):
         info = self.blocked or {}
         proc = info.get('proc')
@@ -989,12 +991,34 @@ class Studio:
                 return self.finish_quarantine(info, 'PID %s 已确认退出，队列恢复' % info.get('pid'))
             self.stopping.wait(self.QUARANTINE_POLL)
             return False
+        # 中文维护：工作进程可能在主服务之后才补写身份记录；每次复查都重新读取（静默读取避免刷日志）。
+        marker, marker_state = self.read_worker_marker(quiet=True)
+        identity = self.marker_identity(marker)
+        if identity:
+            previous = info.get('identity')
+            info['identity'] = identity
+            info['marker'] = marker
+            if previous != identity or info.get('pid') != identity.get('pid'):
+                info['pid'] = identity.get('pid')
+                self._note_quarantine_check(info, '已读取到工作进程补写的身份记录（PID %s）' % identity['pid'])
+        else:
+            identity = info.get('identity')
+        if identity is None:
+            # 中文维护：等待期到期只记录一次复查；它不是放行依据。
+            grace = info.get('grace')
+            if grace is not None and not info.get('grace_noted') and time.time() >= grace:
+                info['grace_noted'] = True
+                self.log_problem('quarantine-check',
+                                  '启动观察窗口已过，仍无可核对的进程身份；继续隔离复查，不会仅凭等待期放行')
         lease, lease_detail = lease_state(self.root / WORKER_LEASE_NAME)
-        identity = info.get('identity')
-        now = time.time()
         if lease == 'locked':
             info['grace'] = None
             self._note_quarantine_check(info, '运行租约仍被占用（%s），队列保持暂停' % lease_detail)
+            self.stopping.wait(self.QUARANTINE_POLL)
+            return False
+        if lease == 'unknown':
+            # 中文维护：锁状态读不到不能当作“空闲”；保留记录与隔离，等待下一次复查。
+            self._note_quarantine_check(info, '暂时无法读取运行租约（%s），继续隔离并复查' % lease_detail)
             self.stopping.wait(self.QUARANTINE_POLL)
             return False
         if identity:
@@ -1007,12 +1031,13 @@ class Studio:
                 # 中文维护：查询失败不等于退出；保留隔离与记录，等待下一次复查。
                 self._note_quarantine_check(info, '暂时无法确认旧进程是否退出（%s），继续隔离并复查' % detail)
         else:
-            grace = info.get('grace')
-            if grace is None:
-                info['grace'] = now + self.STARTUP_GRACE
-                self._note_quarantine_check(info, '没有可核对的 PID，等待启动窗口结束后再确认')
-            elif now >= grace:
-                return self.finish_quarantine(info, '启动记录窗口已过且运行租约空闲，按已退出处理')
+            # 中文维护：没有可核对的 PID 时继续隔离；等待旧进程补写身份后再核对，绝不凭等待期放行。
+            if marker_state == 'corrupt':
+                self._note_quarantine_check(info, '工作进程记录损坏且无法核对身份，继续隔离并复查')
+            elif marker is not None:
+                self._note_quarantine_check(info, '尚未取得可核对的进程身份，等待工作进程补写记录后复查')
+            else:
+                self._note_quarantine_check(info, '没有可核对的进程记录，无法确认是否仍有遗留进程，继续隔离并复查')
         self.stopping.wait(self.QUARANTINE_POLL)
         return False
 
