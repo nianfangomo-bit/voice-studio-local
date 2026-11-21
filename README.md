@@ -62,6 +62,16 @@
 
 界面依赖固定在 app/package.json；tested-environment.json 记录已验证环境。开发者在 app 下安装依赖后执行 npm run build，普通用户使用包内已构建页面。
 
+### 运行测试
+
+仓库根目录的统一入口会跑完整 Python 套件和前端检查，并保留实际退出码：
+
+```powershell
+pwsh -File .\run-tests.ps1 -Python "F:\VoiceStudio-install-20261117-rc1032\engine\runtime\python.exe"
+```
+
+也可以直接运行 `run-tests.cmd -Python "<python.exe>"`（Windows PowerShell 自带环境可用 `powershell -NoProfile -File .\run-tests.ps1`）。也可以先用 `VOICE_STUDIO_PYTHON` 指向已验证的 Python，或不带参数使用 PATH 中的 `python`。退出码 0 表示全部通过；非 0 表示失败。
+
 ## 说明
 
 使用 Codex 辅助开发，与 OpenAI 或 GPT-SoVITS 作者无官方隶属或认证关系。源码许可见 [LICENSE](LICENSE)，第三方组件见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。角色封面来自参考图的 AI 编辑，商业形象使用权尚待确认，不代表 GPT-SoVITS 官方标识。正式品牌宣传前需要补足权利依据或改用权利清晰的素材。
