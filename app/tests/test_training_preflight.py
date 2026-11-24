@@ -174,6 +174,34 @@ class TrainingPreflightTests(unittest.TestCase):
         self.assertEqual(run.call_count, 1)
         training_module._PROBE_CACHE.clear()
 
+    # 中文维护：即使 cuda.is_available() 为 True，矩阵/FFT 架构不兼容也必须在预检拦截。
+    def test_training_probe_blocks_cuda_arch_mismatch(self):
+        import io
+        import json
+        import types
+        import runtime_guard
+        import training_probe
+        fake_torch = types.SimpleNamespace(
+            __version__='2.0.0+cu118',
+            version=types.SimpleNamespace(cuda='11.8'),
+            cuda=types.SimpleNamespace(is_available=lambda: True, get_device_name=lambda idx: 'RTX 5060 Laptop'),
+        )
+        fake_modules = {name: (fake_torch if name == 'torch' else types.SimpleNamespace(__version__='1.0'))
+                        for name in training_probe.MODULES}
+        bad_cuda = {'ok': False, 'detail': '当前运行环境与显卡架构不兼容，请使用经过验证的兼容环境；不要重新录音或原地升级依赖。',
+                    'error': 'RuntimeError: nvrtc: error: invalid value for --gpu-architecture'}
+        buf = io.StringIO()
+        with mock.patch.object(training_probe.importlib, 'import_module', side_effect=lambda n: fake_modules[n]), \
+             mock.patch.dict(sys.modules, {'torch': fake_torch}), \
+             mock.patch.object(runtime_guard, 'probe_cuda', return_value=bad_cuda), \
+             mock.patch('sys.stdout', buf):
+            training_probe.main()
+        line = [l for l in buf.getvalue().splitlines() if l.startswith('VOICE_TRAINING_PROBE=')][-1]
+        report = json.loads(line.split('=', 1)[1])
+        self.assertFalse(report['ok'])
+        self.assertTrue(report['cuda_available'])
+        self.assertTrue(any('架构不兼容' in item for item in report['problems']))
+
 
 if __name__ == '__main__':
     unittest.main()

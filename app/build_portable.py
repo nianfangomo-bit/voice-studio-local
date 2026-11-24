@@ -8,8 +8,8 @@ import json
 import shutil
 from pathlib import Path
 
-APP_FILES = ['environment_selection.py','HardwareAdvisor.exe','hardware_advisor.py','runtime_guard.py','studio.py','server.py','launcher.py','bootstrap.ps1','diagnostics.py','environment_probe.py','migrate_data.py','MigrateData.cmd','training.py','training_worker.py',
-             'inference_worker.py','engine_entry.py','preparation.py','preparation_worker.py',
+APP_FILES = ['environment_selection.py','HardwareAdvisor.exe','hardware_advisor.py','runtime_guard.py','studio.py','server.py','launcher.py','bootstrap.ps1','diagnostics.py','environment_probe.py','migrate_data.py','MigrateData.cmd','training.py','training_probe.py','training_worker.py',
+             'inference_worker.py','engine_entry.py','preparation.py','preparation_worker.py','worker_lease.py',
              '启动.cmd','package.json','static/index.html','static/app.js','static/style.css','legacy/voice_tool/main.py']
 MODEL_PATHS = ['chinese-hubert-base','chinese-roberta-wwm-ext-large','fast_langdetect',
                'sv/pretrained_eres2netv2w24s4ep4.ckpt','v2Pro/s2Gv2Pro.pth',

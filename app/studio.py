@@ -1220,6 +1220,10 @@ class Studio:
                                HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
                                HF_HUB_DISABLE_TELEMETRY='1', GRADIO_ANALYTICS_ENABLED='False',
                                DO_NOT_TRACK='1')
+                    # 中文维护：优先指向随包 nltk_data，防止异机存在旧缓存时借用宿主语言资源。
+                    bundled_nltk = Path(request['settings'].get('engine', '')) / 'runtime' / 'nltk_data'
+                    if bundled_nltk.is_dir():
+                        env['NLTK_DATA'] = str(bundled_nltk)
                     worker_name = 'preparation_worker.py' if preparation_job else 'training_worker.py' if training_job else 'inference_worker.py'
                     proc = subprocess.Popen([str(runtime), '-I', '-X', 'utf8', '-B', str(ROOT / worker_name), str(folder / 'request.json')],
                         stdout=log, stderr=subprocess.STDOUT, env=env, creationflags=HIDDEN)

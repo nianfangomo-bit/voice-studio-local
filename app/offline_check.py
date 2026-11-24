@@ -31,9 +31,9 @@ def inspect(deep=False):
     record('训练、配音与中文转写文件', not missing, '完整' if not missing else '缺少：'+'；'.join(missing))
     # Engine utilities import Gradio even though the product uses its own UI.
     # Check training/inference imports, not merely the HTTP server dependencies.
-    for module in ('tkinter','fastapi','uvicorn','numpy','soundfile','funasr','yaml','torch',
-                   'torchaudio','gradio','pandas','transformers','peft','pytorch_lightning',
-                   'onnxruntime','jieba_fast','split_lang'):
+    for module in ('tkinter','fastapi','uvicorn','numpy','scipy','librosa','soundfile','funasr','yaml','torch',
+                   'torchaudio','gradio','pandas','transformers','peft','pytorch_lightning','tensorboard','tqdm',
+                   'ffmpeg','onnxruntime','jieba_fast','split_lang'):
         try:
             loaded = importlib.import_module(module)
             record(module, True, getattr(loaded,'__version__','可加载'))

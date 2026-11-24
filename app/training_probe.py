@@ -5,7 +5,10 @@
 """
 import importlib
 import json
+from pathlib import Path
 import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # 与 GPT_SoVITS 六阶段训练脚本及其直接依赖保持一致；只检查可加载性。
 MODULES = (
@@ -33,6 +36,17 @@ def main():
             if result['cuda_available']:
                 result['cuda'] = str(torch.version.cuda)
                 result['device'] = str(torch.cuda.get_device_name(0))
+                # 中文维护：在可用 CUDA 上做小型矩阵与 FFT 运算自检，提前拦截 50 系/旧 CUDA 架构不兼容。
+                from runtime_guard import probe_cuda
+                cuda_report = probe_cuda(torch)
+                result['cuda_probe'] = cuda_report
+                if cuda_report.get('ok') is not True:
+                    result['ok'] = False
+                    detail = cuda_report.get('detail') or '当前运行环境与显卡架构不兼容。'
+                    raw_error = str(cuda_report.get('error') or '').strip().splitlines()
+                    if raw_error:
+                        detail += '（' + raw_error[0][:240] + '）'
+                    result['problems'].append(detail)
             else:
                 result['ok'] = False
                 result['problems'].append('训练需要可用的 CUDA；当前运行环境未检测到可用显卡。'

@@ -59,9 +59,6 @@ def main(request_path):
     engine = Path(s['engine'])
     rows, reports = [], []
     complete = 0
-    # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程。
-    from worker_lease import hold as hold_lease
-    hold_lease(req.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
 
     if os.name == 'nt':
         import ctypes, threading
@@ -83,6 +80,9 @@ def main(request_path):
             'rows': rows, 'quality_reports': reports})
 
     try:
+        # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程；放在 try 内以便冲突时写回 error.json。
+        from worker_lease import hold as hold_lease
+        hold_lease(req.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
         # Explicitly deny network access inside this worker, including model SDK
         # metadata checks. Missing assets produce errors instead of downloads.
         # 中文维护：拒绝工作进程网络连接，缺失模型应明确失败而非隐式下载。

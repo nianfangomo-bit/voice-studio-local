@@ -22,15 +22,15 @@ def main(request_path):
     exp = folder / 'experiment'
     exp.mkdir(exist_ok=True)
     completed = 0
-    # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程。
-    from worker_lease import hold as hold_lease
-    hold_lease(req.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
 
     # 中文维护：原子写入实际阶段进度，供主服务恢复结果与刷新界面。
     def progress(message):
         atomic_json(folder / 'progress.json', {'message': message, 'completed': completed})
 
     try:
+        # 中文维护：先持运行租约，主服务重启时可据此识别仍存活的工作进程；放在 try 内以便冲突时写回 error.json。
+        from worker_lease import hold as hold_lease
+        hold_lease(req.get('lease_path') or folder.parent.parent / 'worker.lock', folder)
         lockfile = open(req['lock_path'], 'a+b')
         lockfile.seek(0)
         import msvcrt

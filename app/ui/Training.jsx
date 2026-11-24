@@ -1,15 +1,25 @@
 import React,{useState,useEffect} from 'react';
 
 // 训练向导只展示真实素材和任务状态；计划变化后必须重新确认训练。
-export function Training({state,api,act,pending}) {
-  const [selected,choose]=useState(''),[report,setReport]=useState(null),[confirmed,confirm]=useState(false);
+export function Training({state,api,act,pending,queuePaused=false}) {
+  const [selected,choose]=useState(''),[report,setReport]=useState(null),[confirmed,confirm]=useState(false),[checkingPlan,setCheckingPlan]=useState(false);
   const datasets=state.datasets||[];
   const ds=datasets.find(d=>d.id===selected)||datasets[0];
   const busy=ds&&state.jobs.some(j=>j.project_id===ds.id&&['queued','running','cancelling'].includes(j.state));
+  const locked=busy||queuePaused;
   const reviewed=ds?.rows.filter(r=>r.reviewed&&!r.excluded).length||0;
   const included=ds?.rows.filter(r=>!r.excluded).length||0;
   // 校对或参数变更使旧训练计划失效，防止使用过期修订号直接训练。
   const update=(data)=>act(async()=>{setReport(null);confirm(false);return api(`datasets/${ds.id}`,data)},'已保存校对；原录音与原标注未改动。');
+  const checkPlan=()=>act(async()=>{
+    setCheckingPlan(true);
+    try {
+      const next=await api(`datasets/${ds.id}/plan`);
+      setReport(next);confirm(false);return next;
+    } finally {setCheckingPlan(false);}
+  },'已检查文件、依赖与校对状态；尚未开始训练。');
+  const problems=report?.problems||[];
+  const tips=(report?.warnings||[]).filter(w=>!problems.length||!w.startsWith('训练前检查：'));
   return <><section className="intro"><h2>训练一次，之后直接选用。</h2><p>① 选择录音 → ② 自动切分转写 → ③ 试听校对 → ④ 确认训练 → ⑤ 保存声线</p></section>
     <p className="lead">原始录音会另存保留；自动转写不等于正确标注。请先校对再训练，声线满意后可反复使用。</p>
     <RecordingImport api={api} act={act} pending={pending} choose={choose}/>
@@ -19,14 +29,19 @@ export function Training({state,api,act,pending}) {
       <label className="check"><input type="checkbox" name="authorized" required/>我拥有这些录音和声线的使用授权。</label><button disabled={pending} className="primary">导入并检查素材</button>
     </form></details>
     {ds&&<><div className="toolbar"><select aria-label="选择训练素材" value={ds.id} onChange={e=>{choose(e.target.value);setReport(null);confirm(false)}}>{datasets.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select><span>已确认 {reviewed} / {included} 段 · 原始录音保留</span></div>
-      {ds.recordings&&<section className="panel"><h3>已导入 {ds.recordings.length} 个原始录音</h3><p>{ds.recordings.map(r=>r.name).join('、')}</p><p>切分与转写使用本机 CPU，完成后逐段校对。再次整理会保留旧版片段与校对记录，并生成新版本。</p><button disabled={pending||busy||!ds.recordings.length} onClick={()=>act(()=>api(`datasets/${ds.id}/prepare`,{}),'整理任务已排队；进度见下方或任务中心。')}>{ds.rows.length?'重新切分转写（保留旧版）':'开始自动切分与转写'}</button></section>}
+      {ds.recordings&&<section className="panel"><h3>已导入 {ds.recordings.length} 个原始录音</h3><p>{ds.recordings.map(r=>r.name).join('、')}</p><p>切分与转写使用本机 CPU，完成后逐段校对。再次整理会保留旧版片段与校对记录，并生成新版本。</p><button disabled={pending||locked||!ds.recordings.length} onClick={()=>act(()=>api(`datasets/${ds.id}/prepare`,{}),'整理任务已排队；进度见下方或任务中心。')}>{ds.rows.length?'重新切分转写（保留旧版）':'开始自动切分与转写'}</button></section>}
       {state.jobs.filter(j=>j.project_id===ds.id).slice(0,1).map(j=><div className="taskstrip" role="status" key={j.id}>{j.message} · {j.completed} / {j.total}<button disabled={pending||!['queued','running'].includes(j.state)} onClick={()=>act(()=>api(`jobs/${j.id}/cancel`,{}),'已请求取消，已完成片段会保留。')}>取消任务</button></div>)}
       {!!ds.quality_reports?.length&&<details className="panel"><summary>录音检查结果（不是音质评分）</summary>{ds.quality_reports.map(q=><p key={q.recording_id}>{q.name} · {q.seconds} 秒 · RMS {q.rms_dbfs} dBFS · 接近满幅采样 {(q.clipped_ratio*100).toFixed(2)}%<br/>{q.warnings.join('；')||'未触发音量告警，仍需试听判断噪声、口音和内容。'}</p>)}</details>}
-      <details className="panel"><summary>训练参数已预填 · 需要时再调整</summary><TrainingParams key={ds.id} value={ds.params} disabled={pending||busy} save={params=>update({params})}/></details>
+      <details className="panel"><summary>训练参数已预填 · 需要时再调整</summary><TrainingParams key={ds.id} value={ds.params} disabled={pending||locked} save={params=>update({params})}/></details>
       <h2>逐段试听与校对</h2><p className="muted">每段听完后核对文字。听不清或质量不合适的片段可排除；不要把自动转写当作已确认文本。名称带“自动核验试训”的数据集仅用于功能测试，机器核验不等于人工试听。</p>
-      {ds.rows.map((r,i)=><ReviewRow key={r.id} row={r} index={i} did={ds.id} disabled={pending||busy} save={data=>update({row_id:r.id,...data})}/>)}
-      <section className="panel"><h2>检查训练计划</h2><button disabled={pending||busy} onClick={()=>act(async()=>{setReport(await api(`datasets/${ds.id}/plan`));confirm(false)},'已检查文件与校对状态；尚未开始训练。')}>检查素材、参数与空间</button>
-      {report&&<><p>{report.count} 段 / {report.seconds} 秒 · 尚未校对 {report.pending_review} 段</p><p>GPT {report.params.gpt_epochs} 轮 / SoVITS {report.params.sovits_epochs} 轮 / 批大小 {report.params.batch_size}</p><p>{report.disk_note} 当前可用 {report.free_gb} GB。</p><p>{report.time_note}</p>{report.warnings.map(w=><p key={w} className="bad">提示：{w}</p>)}{report.missing.length>0&&<p className="bad">缺少文件：{report.missing.join('；')}</p>}<label className="check"><input type="checkbox" checked={confirmed} onChange={e=>confirm(e.target.checked)}/>我确认标注准确，允许本次训练占用显卡和磁盘；了解短素材不保证效果。</label><button className="primary" disabled={pending||busy||!report.ready||!confirmed||report.revision!==ds.revision} onClick={()=>act(()=>api(`datasets/${ds.id}/train`,{confirmed:true,revision:report.revision}),'训练已排队。可在任务中心查看实际阶段或取消。')}>确认并开始真实训练</button></>}
+      {ds.rows.map((r,i)=><ReviewRow key={r.id} row={r} index={i} did={ds.id} disabled={pending||locked} save={data=>update({row_id:r.id,...data})}/>)}
+      <section className="panel"><h2>检查训练计划</h2><div className="toolbar"><button disabled={pending||busy||checkingPlan} onClick={checkPlan}>{checkingPlan?'正在检查依赖与显卡运算…':'检查素材、参数与空间'}</button>{checkingPlan&&<span className="muted">首次加载依赖可能需要几十秒，请稍候。</span>}</div>
+      {report&&<><div className={'preflight-status '+(report.ready?'ok':'blocked')}><strong>{report.ready?'✓ 检查通过，可以开始训练':'! 检查未通过，需先处理以下问题'}</strong><span>{report.count} 段 / {report.seconds} 秒 · 未校对 {report.pending_review} 段 · 可用空间 {report.free_gb} GB</span></div>
+        <p>GPT {report.params.gpt_epochs} 轮 / SoVITS {report.params.sovits_epochs} 轮 / 批大小 {report.params.batch_size}</p>
+        <p className="muted">{report.disk_note} {report.time_note}</p>
+        {(problems.length>0||report.missing.length>0)&&<div className="preflight-issues" role="alert"><strong>阻断项（处理后重新检查）</strong><ul>{problems.map(item=><li key={item}>{item}</li>)}{report.missing.length>0&&<li>缺少文件或配置：{report.missing.join('；')}</li>}</ul></div>}
+        {tips.length>0&&<div className="preflight-tips">{tips.map(w=><p key={w} className="muted">提示：{w}</p>)}</div>}
+        <label className="check"><input type="checkbox" checked={confirmed} onChange={e=>confirm(e.target.checked)}/>我确认标注准确，允许本次训练占用显卡和磁盘；了解短素材不保证效果。</label><button className="primary" disabled={pending||locked||!report.ready||!confirmed||report.revision!==ds.revision} onClick={()=>act(()=>api(`datasets/${ds.id}/train`,{confirmed:true,revision:report.revision}),'训练已排队。可在任务中心查看实际阶段或取消。')}>确认并开始真实训练</button></>}
       </section></>}
   </>
 }
